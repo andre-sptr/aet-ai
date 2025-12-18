@@ -2,9 +2,15 @@ export type ChatMode = 'coding' | 'report' | 'daily';
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'model';
   content: string;
   timestamp: Date;
+  attachment?: {
+    type: 'image' | 'file';
+    content: string;
+    mimeType: string;
+    fileName: string;
+  };
 }
 
 export interface ChatModeConfig {

@@ -1,7 +1,8 @@
 'use client';
 
 import { ChatModeConfig } from '@/types';
-import { Code2, FileText, MessageCircle, Sparkles, Zap, Shield } from 'lucide-react';
+import { Code2, FileText, MessageCircle, Sparkles, Zap, Shield, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface LandingPageProps {
   onSelectMode: (mode: ChatModeConfig) => void;
@@ -10,199 +11,154 @@ interface LandingPageProps {
 const CHAT_MODES: ChatModeConfig[] = [
   {
     id: 'coding',
-    title: 'Coding Assistant',
-    description: 'Bantuan untuk Python, C++, dan HTML dengan preview code',
+    title: 'Coding Expert',
+    description: 'Debugging & penulisan kode Python, C++, HTML dengan presisi tinggi.',
     icon: 'code',
     systemInstruction: '',
     color: 'blue'
   },
   {
     id: 'report',
-    title: 'Report Analysis',
-    description: 'Analisis laporan akademik dan penulisan ilmiah',
+    title: 'Academic Writer',
+    description: 'Analisis laporan, jurnal, dan penulisan ilmiah terstruktur.',
     icon: 'file',
     systemInstruction: '',
     color: 'green'
   },
   {
     id: 'daily',
-    title: 'Daily Activities',
-    description: 'Percakapan kasual dan bantuan sehari-hari',
+    title: 'Smart Companion',
+    description: 'Diskusi interaktif untuk produktivitas sehari-hari.',
     icon: 'message',
     systemInstruction: '',
     color: 'purple'
   }
 ];
 
-const getIcon = (iconName: string, className: string = '') => {
-  const icons = {
-    code: Code2,
-    file: FileText,
-    message: MessageCircle
-  };
-  const Icon = icons[iconName as keyof typeof icons] || MessageCircle;
-  return <Icon className={className} />;
-};
-
-const getGradientClass = (color: string) => {
-  const gradients = {
-    blue: 'card-gradient-blue',
-    green: 'card-gradient-green',
-    purple: 'card-gradient-purple'
-  };
-  return gradients[color as keyof typeof gradients] || 'card-gradient-blue';
-};
-
 export default function LandingPage({ onSelectMode }: LandingPageProps) {
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-40 -left-40 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-        <div className="absolute -bottom-40 right-1/4 w-80 h-80 bg-green-400/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-      </div>
-
-      {/* Header Section */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0056D2] via-[#0056D2] to-[#003d96]" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAgNGgtMnYyaDJ2LTJ6bTAgMnYyaDJ2LTJoLTJ6bTItMmgydjJoLTJ2LTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-20" />
-        
-        <div className="relative max-w-6xl mx-auto px-4 py-16 animate-fade-in">
-          <div className="text-center">
-            {/* Logo Badge */}
-            <div className="inline-flex items-center gap-2 glass-effect px-6 py-3 rounded-full mb-6">
-              <Sparkles className="w-5 h-5 text-yellow-400" />
-              <span className="text-sm font-semibold text-white">Powered by Gemini AI</span>
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden selection:bg-blue-100 selection:text-blue-900">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-white/50 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          {/* Logo Brand */}
+          <div className="flex items-center gap-3 cursor-pointer group">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform overflow-hidden">
+              <Image 
+                src="/favicon.ico" 
+                alt="Logo AET" 
+                width={32} 
+                height={32} 
+                className="w-6 h-6 object-contain" 
+              />
             </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none ">AET AI</h1>
+              <p className="text-[14px] text-slate-500 font-medium tracking-wide">Himpunan Mahasiswa AET PCR</p>
+            </div>
+          </div>
 
-            {/* Main Title */}
-            <h1 className="text-6xl md:text-7xl font-bold text-white mb-4 tracking-tight">
-              AET AI
-            </h1>
-            <div className="h-1 w-24 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mx-auto mb-6" />
-            
-            {/* Subtitle */}
-            <p className="text-2xl md:text-3xl text-blue-100 font-medium mb-2">
-              Asisten AI untuk Mahasiswa AET
-            </p>
-            <p className="text-lg text-blue-200/80">
-              Politeknik Caltex Riau
-            </p>
+          {/* Navigation Links (Hidden Mobile) */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+            <button className="hover:text-blue-600 transition-colors">Beranda</button>
+            <button className="hover:text-blue-600 transition-colors">Fitur</button>
+            <button className="hover:text-blue-600 transition-colors">Panduan</button>
+          </div>
 
-            {/* Feature Badges */}
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-                <Zap className="w-4 h-4 text-yellow-300" />
-                <span className="text-sm text-white">Respon Cepat</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-                <Shield className="w-4 h-4 text-green-300" />
-                <span className="text-sm text-white">Tanpa Login</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-                <Sparkles className="w-4 h-4 text-purple-300" />
-                <span className="text-sm text-white">Multi Mode</span>
-              </div>
+          {/* Right Action */}
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-xs font-semibold">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              System Online
             </div>
           </div>
         </div>
+      </nav>
 
-        {/* Wave Separator */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
-            <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
-          </svg>
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] bg-blue-100/50 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-[20%] -left-[10%] w-[50vw] h-[50vw] bg-indigo-100/50 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6 py-20 lg:py-32">
+        {/* Header Section */}
+        <div className="flex flex-col items-center text-center max-w-5xl mx-auto mb-24 animate-fade-in px-4">
+          <div className="inline-flex items-center gap-2 bg-white border border-slate-200 shadow-sm px-4 py-1.5 rounded-full mb-8">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-medium text-slate-600">AET Intelligence System</span>
+          </div>
+
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-6 whitespace-nowrap">
+            Halo! Selamat Datang di <span className="text-[#0056D2] tracking-wider ml-3">AET AI</span>
+          </h1>
+          
+          <p className="text-xl text-slate-600 mb-10 leading-relaxed">
+            Saya adalah asisten AI Himpunan Mahasiswa AET Politeknik Caltex Riau. Pilih salah satu kemampuan di bawah untuk memulai percakapan.
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-4 text-sm font-medium text-slate-500">
+            <span className="flex items-center gap-2 px-4 py-2 bg-white/60 rounded-lg border border-slate-100">
+              <Zap className="w-4 h-4 text-blue-500" /> Fast Response
+            </span>
+            <span className="flex items-center gap-2 px-4 py-2 bg-white/60 rounded-lg border border-slate-100">
+              <Shield className="w-4 h-4 text-green-500" /> Secure & Private
+            </span>
+          </div>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+          {CHAT_MODES.map((mode, index) => {
+            const icons = { code: Code2, file: FileText, message: MessageCircle };
+            const Icon = icons[mode.icon as keyof typeof icons] || MessageCircle;
+            
+            return (
+              <button
+                key={mode.id}
+                onClick={() => onSelectMode(mode)}
+                className="group relative flex flex-col items-start p-8 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all duration-300 animate-slide-up text-left overflow-hidden"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-${mode.color === 'blue' ? 'blue' : mode.color === 'green' ? 'emerald' : 'violet'}-50/50 to-transparent`} />
+
+                <div className={`relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300 
+                  ${mode.color === 'blue' ? 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white' : 
+                    mode.color === 'green' ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white' : 
+                    'bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-white'}`}
+                >
+                  <Icon className="w-7 h-7" />
+                </div>
+
+                <h3 className="relative z-10 text-xl font-bold text-slate-900 mb-3 group-hover:text-slate-900">
+                  {mode.title}
+                </h3>
+                
+                <p className="relative z-10 text-slate-500 leading-relaxed mb-8 flex-1">
+                  {mode.description}
+                </p>
+
+                <div className="relative z-10 flex items-center gap-2 text-sm font-semibold text-slate-900 group-hover:gap-3 transition-all">
+                  Mulai Chat <ArrowRight className="w-4 h-4" />
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center mb-12 animate-slide-up">
-          <h2 className="text-4xl font-bold text-[#1A1A1A] mb-4">
-            Pilih Mode Asisten Anda
-          </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Setiap mode dirancang khusus untuk membantu kebutuhan spesifik Anda dengan teknologi AI terkini
+      {/* --- FOOTER --- */}
+      <footer className="relative z-10 py-6 mt-20 border-t border-slate-200 bg-white/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-black font-medium text-sm tracking-wide">
+            &copy; {new Date().getFullYear()} Association of <span className="text-[#D32F2F]">Electro</span>nics Telecommunication
+          </p>
+          <p className="text-[#0056D2] font-semibold text-xs mt-2">
+            Politeknik Caltex Riau
           </p>
         </div>
-
-        {/* Mode Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {CHAT_MODES.map((mode, index) => (
-            <button
-              key={mode.id}
-              onClick={() => onSelectMode(mode)}
-              className="group relative animate-slide-up hover:scale-105 transition-all duration-500"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Card Container */}
-              <div className="relative h-full glass-effect rounded-3xl p-8 overflow-hidden">
-                {/* Gradient Overlay on Hover */}
-                <div className={`absolute inset-0 ${getGradientClass(mode.color)} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                
-                {/* Shine Effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                </div>
-
-                {/* Content */}
-                <div className="relative z-10">
-                  {/* Icon Container */}
-                  <div className="mb-6 relative">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-white/20 group-hover:to-white/10 flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 mx-auto">
-                      {getIcon(mode.icon, 'w-10 h-10 text-[#0056D2] group-hover:text-white transition-colors duration-500')}
-                    </div>
-                    {/* Glow Effect */}
-                    <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-2xl font-bold text-[#1A1A1A] group-hover:text-white mb-3 transition-colors duration-500">
-                    {mode.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-gray-600 group-hover:text-white/90 leading-relaxed mb-6 transition-colors duration-500">
-                    {mode.description}
-                  </p>
-
-                  {/* CTA */}
-                  <div className="flex items-center justify-center gap-2 text-[#0056D2] group-hover:text-white font-semibold transition-colors duration-500">
-                    <span>Mulai Sekarang</span>
-                    <svg
-                      className="w-5 h-5 transform group-hover:translate-x-2 transition-transform duration-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                      />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Corner Accent */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Bottom Info Section */}
-        <div className="text-center space-y-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
-          <div className="inline-flex items-center gap-3 glass-effect px-8 py-4 rounded-2xl">
-            <Sparkles className="w-5 h-5 text-yellow-500 animate-pulse" />
-            <p className="text-gray-700 font-medium">
-              Didukung oleh Google Gemini AI • Gratis untuk semua mahasiswa AET
-            </p>
-          </div>
-        </div>
-      </div>
+      </footer>
     </div>
   );
 }

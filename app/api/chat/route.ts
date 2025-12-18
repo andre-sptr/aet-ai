@@ -2,10 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { ChatRequest, ChatMode } from '@/types';
 
-// Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-// System instructions for each mode
 const SYSTEM_INSTRUCTIONS: Record<ChatMode, string> = {
   coding: `Anda adalah asisten coding untuk mahasiswa AET PCR. 
 Fokus pada:
@@ -35,9 +33,12 @@ Fokus pada:
 Selalu awali dengan: "Halo! Saya asisten AI untuk Himpunan Mahasiswa AET PCR."`
 };
 
+function cleanBase64(base64: string) {
+  return base64.replace(/^data:(.*,)?/, '');
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // Check API key
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
         { error: 'GEMINI_API_KEY is not configured' },
@@ -45,7 +46,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse request body
     const body: ChatRequest = await req.json();
     const { messages, mode } = body;
 
@@ -56,36 +56,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get the model with system instruction
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction: SYSTEM_INSTRUCTIONS[mode]
+      model: 'gemini-2.5-flash',
+      systemInstruction: SYSTEM_INSTRUCTIONS[mode as ChatMode] || '' 
     });
 
-    // Convert messages to Gemini format
-    const history = messages.slice(0, -1).map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }]
-    }));
+    const history = messages.slice(0, -1).map(msg => {
+      const parts: any[] = [{ text: msg.content }];
+      if (msg.attachment) {
+        parts.push({
+          inlineData: {
+            mimeType: msg.attachment.mimeType,
+            data: cleanBase64(msg.attachment.content)
+          }
+        });
+      }
 
-    // Start chat with history
+      return {
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: parts
+      };
+    });
+
     const chat = model.startChat({
       history,
       generationConfig: {
-        maxOutputTokens: 2048,
+        maxOutputTokens: 8192,
         temperature: 0.7,
       }
     });
 
-    // Get the last message
     const lastMessage = messages[messages.length - 1];
+    
+    const messageParts: any[] = [{ text: lastMessage.content }];
+    if (lastMessage.attachment) {
+      messageParts.push({
+        inlineData: {
+          mimeType: lastMessage.attachment.mimeType,
+          data: cleanBase64(lastMessage.attachment.content)
+        }
+      });
+    }
 
-    // Send message and get response
-    const result = await chat.sendMessage(lastMessage.content);
+    const result = await chat.sendMessage(messageParts);
     const response = result.response;
     const text = response.text();
 
-    return NextResponse.json({ response: text });
+    return NextResponse.json({ response: text })
 
   } catch (error: any) {
     console.error('Chat API Error:', error);

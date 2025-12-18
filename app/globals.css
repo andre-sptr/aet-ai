@@ -1,29 +1,38 @@
+/* app/globals.css */
 @import "tailwindcss";
 
 @theme {
-  --color-pcr-blue: #0056d2;
-  --color-pcr-blue-dark: #003d96;
-  --color-pcr-red: #d32f2f;
-  --color-pcr-red-dark: #b71c1c;
+  /* Warna Brand yang lebih "Deep" dan Profesional */
+  --color-pcr-blue: #0056D2;
+  --color-pcr-blue-dark: #0044A5;
+  --color-pcr-red: #D92D20;
+  
+  /* Font Family dari Layout */
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 
-  --animate-float: float 3s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-slide-up: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: fadeIn 0.8s ease-out;
+
   --animate-slide-up: slideUp 0.5s ease-out;
+  --animate-slide-down: slideDown 0.5s ease-out;
   --animate-fade-in: fadeIn 0.6s ease-out;
 }
 
 @keyframes float {
-  0%, 100% { 
-    transform: translateY(0px); 
-  }
-  50% { 
-    transform: translateY(-10px); 
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
 }
 
 @keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -32,50 +41,36 @@
 }
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-  }
-  to { 
-    opacity: 1; 
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Custom Utilities */
+/* Premium Glass Effect - Lebih tipis dan bersih */
 @utility glass-effect {
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
 }
 
-@utility card-gradient-blue {
-  background: linear-gradient(135deg, #0056D2 0%, #003d96 100%);
+@utility glass-effect-dark {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-@utility card-gradient-green {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-@utility card-gradient-purple {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-}
-
-/* Custom Scrollbar */
+/* Scrollbar Minimalis */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-track {
-  background-color: rgb(243 244 246);
-  border-radius: 9999px;
+  background: transparent;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgb(209 213 219);
-  border-radius: 9999px;
-  transition: background-color 0.15s;
+  background: #CBD5E1;
+  border-radius: 100px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(156 163 175);
+  background: #94A3B8;
 }
