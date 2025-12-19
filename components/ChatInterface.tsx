@@ -197,19 +197,19 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
     },
     { 
       id: 'imagen-4.0-fast-generate-001', 
-      name: 'Imagen 4.0 Fast', 
+      name: 'Imagen 4.0 Fast (Image)', 
       desc: 'Generasi gambar kilat', 
       icon: Zap 
     },
     { 
       id: 'imagen-4.0-generate-001', 
-      name: 'Imagen 4.0', 
+      name: 'Imagen 4.0 (Image)', 
       desc: 'Kualitas gambar tinggi', 
       icon: ImageIcon 
     },
     { 
       id: 'imagen-4.0-ultra-generate-001', 
-      name: 'Imagen 4.0 Ultra', 
+      name: 'Imagen 4.0 Ultra (Image)', 
       desc: 'Detail fotorealistik & tajam', 
       icon: Palette 
     },
