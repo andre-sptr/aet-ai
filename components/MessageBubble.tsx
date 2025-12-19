@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import mermaid from 'mermaid';
 
 const CodeBlock = ({ inline, className, children, ...props }: any) => {
   const match = /language-(\w+)/.exec(className || '');
@@ -82,6 +83,42 @@ const CodeBlock = ({ inline, className, children, ...props }: any) => {
           </div>
        )}
     </div>
+  );
+};
+
+const Mermaid = ({ chart }: { chart: string }) => {
+  const [svg, setSvg] = useState('');
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const renderChart = async () => {
+      try {
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+        const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+        const { svg } = await mermaid.render(id, chart);
+        setSvg(svg);
+        setError(false);
+      } catch (err) {
+        console.error('Mermaid render error:', err);
+        setError(true);
+      }
+    };
+    renderChart();
+  }, [chart]);
+
+  if (error) {
+    return (
+      <div className="p-3 bg-red-50 text-red-600 text-xs rounded border border-red-100 font-mono">
+        Gagal merender diagram. Kode tidak valid.
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="my-4 p-4 bg-white rounded-xl border border-slate-200 overflow-x-auto flex justify-center shadow-sm"
+      dangerouslySetInnerHTML={{ __html: svg }} 
+    />
   );
 };
 

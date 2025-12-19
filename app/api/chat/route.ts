@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
-import { ChatRequest, ChatMode } from '@/types';
+import { ChatMode } from '@/types';
+import dns from 'dns/promises';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -125,6 +126,187 @@ async function fetchCurrency(amountStr: string | undefined, from: string, to: st
   }
 }
 
+async function scrapeWeb(url: string) {
+  try {
+    console.log(`Scraping: ${url}`);
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Bot)' } });
+    if (!res.ok) return null;
+    
+    const html = await res.text();
+    const text = html.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, "")
+                     .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, "")
+                     .replace(/<[^>]+>/g, ' ')
+                     .replace(/\s+/g, ' ')
+                     .trim()
+                     .substring(0, 3000); 
+
+    return `
+    [DATA WEB REAL-TIME: ${url}]
+    - Konten: ${text}...
+    - Instruksi: Gunakan informasi di atas untuk menjawab user.`;
+  } catch (e) {
+    console.error('Scrape error:', e);
+    return null;
+  }
+}
+
+function convertUnit(value: number, from: string, to: string) {
+  const factors: Record<string, number> = {
+    'm': 1, 'km': 1000, 'cm': 0.01, 'mm': 0.001, 'mi': 1609.34, 'ft': 0.3048, 'in': 0.0254, // Length (base: meter)
+    'kg': 1, 'g': 0.001, 'mg': 0.000001, 'lb': 0.453592, 'oz': 0.0283495, // Weight (base: kg)
+  };
+
+  from = from.toLowerCase();
+  to = to.toLowerCase();
+
+  if (['c', 'f', 'k'].includes(from) && ['c', 'f', 'k'].includes(to)) {
+    let tempC = value;
+    if (from === 'f') tempC = (value - 32) * 5/9;
+    if (from === 'k') tempC = value - 273.15;
+    
+    let res = tempC;
+    if (to === 'f') res = (tempC * 9/5) + 32;
+    if (to === 'k') res = tempC + 273.15;
+    return res.toFixed(2);
+  }
+
+  if (factors[from] && factors[to]) {
+    const baseValue = value * factors[from];
+    const result = baseValue / factors[to];
+    return result.toFixed(4).replace(/\.?0+$/, ''); 
+  }
+  
+  return null;
+}
+
+function analyzeDataNumbers(text: string) {
+  const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number);
+  if (!nums || nums.length < 3) return null;
+
+  const sum = nums.reduce((a, b) => a + b, 0);
+  const avg = sum / nums.length;
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  const sorted = [...nums].sort((a, b) => a - b);
+  const median = sorted.length % 2 !== 0 ? sorted[Math.floor(sorted.length / 2)] : 
+                 (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+
+  return `
+  [ANALISIS DATA REAL-TIME]
+  - Data: [${nums.slice(0, 5).join(', ')}...] (${nums.length} items)
+  - Total: ${sum}
+  - Rata-rata (Mean): ${avg.toFixed(2)}
+  - Median: ${median}
+  - Min: ${min} | Max: ${max}
+  - Instruksi: Jelaskan insight dari statistik di atas.`;
+}
+
+function processColor(text: string) {
+  const hexMatch = text.match(/#([0-9a-f]{3}|[0-9a-f]{6})\b/i);
+  if (hexMatch) {
+    let hex = hexMatch[1];
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `[INFO WARNA] Kode ${hexMatch[0]} adalah RGB(${r}, ${g}, ${b}).`;
+  }
+
+  const rgbMatch = text.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+  if (rgbMatch) {
+    const r = parseInt(rgbMatch[1]);
+    const g = parseInt(rgbMatch[2]);
+    const b = parseInt(rgbMatch[3]);
+    const toHex = (n: number) => n.toString(16).padStart(2, '0');
+    return `[INFO WARNA] Kode RGB(${r},${g},${b}) adalah Hex #${toHex(r)}${toHex(g)}${toHex(b)}.`;
+  }
+  return null;
+}
+
+function validateEmail(email: string) {
+  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const isValid = re.test(email);
+  const domain = email.split('@')[1];
+  
+  return `
+  [VALIDASI EMAIL]
+  - Email: ${email}
+  - Format Valid: ${isValid ? 'YA ✅' : 'TIDAK ❌'}
+  - Domain: ${domain || '-'}
+  - Analisis: ${isValid ? 'Struktur email terlihat benar.' : 'Struktur email salah, cek tanda @ atau domain.'}`;
+}
+
+function generatePassword(req: string) {
+  const lengthMatch = req.match(/\b(\d+)\b/);
+  let length = lengthMatch ? parseInt(lengthMatch[1]) : 12;
+  
+  if (length < 4) length = 4;
+  if (length > 64) length = 64;
+
+  const useSpecial = /(simbol|unik|spesial|tanda|karakter)/i.test(req);
+  
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const special = "!@#$%^&*()_+~`|}{[]:;?><,./-=";
+  const charset = useSpecial ? chars + special : chars;
+  
+  let password = "";
+  for (let i = 0; i < length; ++i) {
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    password += charset[randomIndex];
+  }
+  
+  return `
+  [PASSWORD GENERATOR]
+  - Password: ${password}
+  - Panjang: ${length} karakter
+  - Kompleksitas: ${useSpecial ? 'Tinggi (Huruf + Angka + Simbol)' : 'Standar (Huruf + Angka)'}
+  - Instruksi: Berikan password ini kepada user.`;
+}
+
+async function searchTavily(query: string) {
+  try {
+    const apiKey = process.env.TAVILY_API_KEY;
+    if (!apiKey) return '[ERROR] TAVILY_API_KEY belum dikonfigurasi di .env';
+
+    console.log(`Tavily Searching: ${query}`);
+    
+    const response = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey,
+        query: query,
+        search_depth: "basic",
+        include_answer: true,
+        max_results: 5
+      }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Tavily API Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    let resultText = `[HASIL PENCARIAN TAVILY UNTUK: "${query}"]\n`;
+    
+    if (data.answer) {
+        resultText += `- Jawaban Singkat: ${data.answer}\n`;
+    }
+    
+    data.results.forEach((res: any, idx: number) => {
+        resultText += `\n${idx + 1}. ${res.title}\n   URL: ${res.url}\n   Isi: ${res.content.substring(0, 300)}...\n`;
+    });
+    
+    resultText += `\n- INSTRUKSI: Gunakan data di atas untuk menjawab user. Jika ada URL spesifik yang dicari user, berikan URL-nya.`;
+    
+    return resultText;
+
+  } catch (error) {
+    console.error('Tavily Search Error:', error);
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -184,23 +366,121 @@ export async function POST(req: NextRequest) {
         - WAJIB tulis dan jalankan kode Python untuk mendapatkan jawaban yang presisi.`;
       }
       if (tools.includes('currency')) {
-        const currencyMatch = lastUserMessage.match(
-          /(?:(\d+(?:[\.,]\d+)?)\s*)?([a-zA-Z]{3,}|dolar|rupiah|euro|yen|ringgit|pound|won|yuan|riyal)(?:\s*(?:ke|to|in|=)\s*([a-zA-Z]{3,}|dolar|rupiah|euro|yen|ringgit|pound|won|yuan|riyal))?/i
+        const mapKeys = Object.keys(CURRENCY_MAP).join('|');
+        const commonCodes = "USD|IDR|EUR|GBP|JPY|AUD|SGD|MYR|CNY|KRW|SAR|THB|VND|HKD|CAD";
+        
+        const currencyRegex = new RegExp(
+          `(?:(\\d+(?:[\\.,]\\d+)?)\\s*)?\\b(${mapKeys}|${commonCodes})\\b(?:\\s*(?:ke|to|in|=|->|\\s)\\s*\\b(${mapKeys}|${commonCodes})\\b)?`, 
+          'i'
         );
 
-        const keywords = ['convert', 'tukar', 'kurs', 'nilai', 'harga', 'usd', 'idr', 'dolar', 'rupiah'];
-        const hasKeyword = keywords.some(k => lastUserMessage.includes(k));
+        const currencyMatch = lastUserMessage.match(currencyRegex);
 
-        if (currencyMatch && hasKeyword) {
+        if (currencyMatch && currencyMatch[2]) {
           const amountStr = currencyMatch[1];
           const fromCurr = currencyMatch[2];
           const toCurr = currencyMatch[3];
-
+          
           const currencyInfo = await fetchCurrency(amountStr, fromCurr, toCurr);
           
           if (currencyInfo) {
             finalSystemInstruction += `\n${currencyInfo}`;
           }
+        }
+
+        finalSystemInstruction += `\n[INFO SISTEM: FITUR KURS REAL-TIME AKTIF]
+        - Fitur konversi mata uang sedang aktif.
+        - PENTING: Jika pengguna bertanya tentang nilai tukar/kurs tetapi Data Kurs Real-time TIDAK ditemukan di atas, itu berarti format pengguna salah.
+        - JANGAN berikan data kadaluwarsa dari ingatanmu.
+        - Sampaikan pesan ini kepada pengguna: "Untuk melihat kurs real-time terkini, silakan ketik nominal dan mata uangnya secara lengkap. Contoh: '10 USD ke IDR' atau '1000 Won to Rupiah'."`;
+      }
+      if (tools.includes('scraper')) {
+        const urlMatch = lastUserMessage.match(/(https?:\/\/[^\s]+)/);
+        if (urlMatch) {
+          const webData = await scrapeWeb(urlMatch[0]);
+          if (webData) finalSystemInstruction += `\n${webData}`;
+        }
+      }
+      if (tools.includes('units')) {
+        const unitMatch = lastUserMessage.match(/(\d+(?:\.\d+)?)\s*([a-zA-Z]+)\s*(?:ke|to|in|=)\s*([a-zA-Z]+)/i);
+        if (unitMatch) {
+          const val = parseFloat(unitMatch[1]);
+          const fromUnit = unitMatch[2];
+          const toUnit = unitMatch[3];
+          const result = convertUnit(val, fromUnit, toUnit);
+          
+          if (result) {
+            finalSystemInstruction += `\n[KONVERSI UNIT] ${val} ${fromUnit} = ${result} ${toUnit}. Jawab langsung angka ini.`;
+          }
+        }
+      }
+      if (tools.includes('data_analysis')) {
+        if (lastUserMessage.match(/(?:analisis|statistik|data)/i)) {
+            const analysisResult = analyzeDataNumbers(lastUserMessage);
+            if (analysisResult) finalSystemInstruction += `\n${analysisResult}`;
+        }
+      }
+      if (tools.includes('colors')) {
+        const colorInfo = processColor(lastUserMessage);
+        if (colorInfo) finalSystemInstruction += `\n${colorInfo}`;
+      }
+      if (tools.includes('email_validator')) {
+        const emailMatch = lastUserMessage.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+        if (emailMatch && (lastUserMessage.includes('valid') || lastUserMessage.includes('cek'))) {
+          finalSystemInstruction += `\n${validateEmail(emailMatch[0])}`;
+        }
+      }
+      if (tools.includes('password_gen')) {
+        const isPasswordRequest = /(password|sandi|pass|kunci)/i.test(lastUserMessage);
+        
+        if (isPasswordRequest) {
+          finalSystemInstruction += `\n${generatePassword(lastUserMessage)}`;
+        }
+      }
+      if (tools.includes('web_search')) {
+        const igMatch = lastUserMessage.match(/(?:cari|lihat|cek|apa|akun)\s*(?:ig|instagram|sosmed)\s+(?:nya|dari|untuk)?\s*@?(.+)/i);
+        
+        let searchQuery = lastUserMessage;
+        let instructionAddon = "";
+
+        if (igMatch) {
+           let queryName = igMatch[1].replace(/[?]/g, '').trim();
+           queryName = queryName.replace(/^@/, '');
+           
+           searchQuery = `instagram.com/${queryName} official profile`;
+           
+           if (queryName.toLowerCase().includes('aet') && !queryName.toLowerCase().includes('pcr')) {
+              searchQuery = `instagram.com/${queryName} aet pcr riau profile`;
+           }
+           
+           instructionAddon = `\n[FOKUS: PENCARIAN INSTAGRAM]
+           - User mencari akun IG: "${queryName}".
+           - Tavily telah memberikan hasil pencarian di atas.
+           - Cari URL yang formatnya "https://www.instagram.com/${queryName}/" atau mirip.
+           - Jika ketemu, JANGAN RAGU. Langsung berikan linknya.`;
+        } else {
+            instructionAddon = `\n[FOKUS: RANGKUMAN WEB]
+            - Gunakan data dari Tavily di atas untuk menjawab pertanyaan user.
+            - Buat rangkuman yang detail, informatif, dan tidak terlalu pendek.
+            - Sertakan sumber (URL) jika relevan.`;
+        }
+        const searchResults = await searchTavily(searchQuery);
+        
+        if (searchResults) {
+            finalSystemInstruction += `\n${searchResults}${instructionAddon}`;
+        } else {
+            finalSystemInstruction += `\n[INFO] Gagal melakukan pencarian web. Beritahu user untuk mencoba lagi nanti.`;
+        }
+      }
+      if (tools.includes('diagram') || tools.includes('flowchart')) {
+        if (lastUserMessage.match(/(buat|gambarkan|susun|bikin)\s+(diagram|flowchart|alur|skema)/i)) {
+          finalSystemInstruction += `\n[TOOL: DIAGRAM/FLOWCHART AKTIF]
+          - User meminta visualisasi.
+          - WAJIB gunakan sintaks MERMAID.JS.
+          - Bungkus kode dalam block: \`\`\`mermaid ... \`\`\`
+          - Jangan gunakan ASCII art jika tidak diminta.
+          - Contoh Flowchart: graph TD; A-->B;
+          - Contoh Sequence: sequenceDiagram; Alice->>John: Hello;`;
         }
       }
     }

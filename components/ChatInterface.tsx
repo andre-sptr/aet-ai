@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { Message, ChatMode } from '@/types';
 import MessageBubble from './MessageBubble';
-import { Camera, Paperclip, X, Send, Loader2, Trash2, ArrowLeft, FileText, Code, MessageCircle, Sparkles, Zap, ChevronDown, Check, Feather, Image as ImageIcon, Bot, Palette, Video, AlertTriangle, Calculator, Clock, CloudSun, Coins, CheckSquare, Settings, Square } from 'lucide-react';
+import { Camera, Paperclip, X, Send, Loader2, Trash2, ArrowLeft, FileText, Code, MessageCircle, Sparkles, Zap, ChevronDown, Check, Feather, Image as ImageIcon, Bot, Palette, Video, AlertTriangle, Calculator, Clock, CloudSun, Coins, CheckSquare, Settings, Square, BarChart3, Globe, Ruler, KeyRound, MailCheck, Network, Search, Workflow } from 'lucide-react';
 
 interface ChatInterfaceProps {
   mode: ChatMode;
@@ -57,6 +57,69 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       icon: Coins,
       color: 'text-emerald-500 bg-emerald-50'
     },
+    { 
+      id: 'scraper', 
+      name: 'Web Reader', 
+      desc: 'Baca konten link', 
+      icon: Globe,
+      color: 'text-indigo-500 bg-indigo-50'
+    },
+    { 
+      id: 'web_search', 
+      name: 'Web Search', 
+      desc: 'Link pencarian', 
+      icon: Search, 
+      color: 'text-blue-600 bg-blue-50'
+    },
+    { 
+      id: 'email_validator', 
+      name: 'Cek Email', 
+      desc: 'Validasi format', 
+      icon: MailCheck, 
+      color: 'text-red-500 bg-red-50'
+    },
+    { 
+      id: 'password_gen',
+      name: 'Password Gen', 
+      desc: 'Buat sandi kuat', 
+      icon: KeyRound,
+      color: 'text-slate-600 bg-slate-100'
+    },
+    { 
+      id: 'diagram', 
+      name: 'Diagram', 
+      desc: 'Buat skema', 
+      icon: Network, 
+      color: 'text-teal-500 bg-teal-50'
+    },
+    { 
+      id: 'flowchart', 
+      name: 'Flowchart', 
+      desc: 'Alur proses', 
+      icon: Workflow, 
+      color: 'text-purple-600 bg-purple-50'
+    },
+    { 
+      id: 'units', 
+      name: 'Konversi Unit', 
+      desc: 'Jarak, Berat, Suhu', 
+      icon: Ruler,
+      color: 'text-pink-500 bg-pink-50'
+    },
+    { 
+      id: 'data_analysis', 
+      name: 'Analisis Data', 
+      desc: 'Statistik angka', 
+      icon: BarChart3,
+      color: 'text-cyan-500 bg-cyan-50'
+    },
+    { 
+      id: 'colors', 
+      name: 'Cek Warna', 
+      desc: 'Hex <-> RGB', 
+      icon: Palette,
+      color: 'text-fuchsia-500 bg-fuchsia-50'
+    } 
   ];
 
   const toggleTool = (toolId: string) => {
