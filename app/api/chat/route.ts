@@ -6,7 +6,7 @@ import dns from 'dns/promises';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 const BASE_SYSTEM_INSTRUCTIONS: Record<ChatMode, string> = {
-  coding: `Anda adalah asisten coding untuk mahasiswa AET PCR. 
+  coding: `Anda adalah asisten coding mahasiswa AET PCR. 
 Fokus pada:
 - Membantu dengan Python dan C++ (syntax, debugging, best practices)
 - Menjelaskan konsep programming dengan jelas
@@ -15,7 +15,7 @@ Fokus pada:
 - Gunakan bahasa Indonesia yang mudah dipahami
 Selalu awali dengan: "Halo! Saya asisten AI Himpunan Mahasiswa AET PCR."`,
 
-  report: `Anda adalah asisten analisis laporan untuk mahasiswa AET PCR.
+  report: `Anda adalah asisten analisis laporan mahasiswa AET PCR.
 Fokus pada:
 - Membantu penulisan akademik dan laporan
 - Menganalisis data dan memberikan insight
@@ -24,7 +24,7 @@ Fokus pada:
 - Gunakan bahasa Indonesia yang formal dan akademis
 Selalu awali dengan: "Halo! Saya asisten AI Himpunan Mahasiswa AET PCR."`,
 
-  daily: `Anda adalah asisten percakapan untuk mahasiswa AET PCR.
+  daily: `Anda adalah asisten percakapan mahasiswa AET PCR.
 Fokus pada:
 - Percakapan kasual dan ramah
 - Membantu dengan pertanyaan umum
@@ -152,8 +152,8 @@ async function scrapeWeb(url: string) {
 
 function convertUnit(value: number, from: string, to: string) {
   const factors: Record<string, number> = {
-    'm': 1, 'km': 1000, 'cm': 0.01, 'mm': 0.001, 'mi': 1609.34, 'ft': 0.3048, 'in': 0.0254, // Length (base: meter)
-    'kg': 1, 'g': 0.001, 'mg': 0.000001, 'lb': 0.453592, 'oz': 0.0283495, // Weight (base: kg)
+    'm': 1, 'km': 1000, 'cm': 0.01, 'mm': 0.001, 'mi': 1609.34, 'ft': 0.3048, 'in': 0.0254,
+    'kg': 1, 'g': 0.001, 'mg': 0.000001, 'lb': 0.453592, 'oz': 0.0283495,
   };
 
   from = from.toLowerCase();
@@ -318,6 +318,36 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { messages, mode, model: userModel, tools, clientInfo } = body;
+
+    if (userModel && userModel.toLowerCase().includes('imagen')) {
+      const lastMessage = messages[messages.length - 1].content;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${userModel}:predict?key=${process.env.GEMINI_API_KEY}`;
+      
+      const imgRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instances: [{ prompt: lastMessage }],
+          parameters: { sampleCount: 1, aspectRatio: "1:1" }
+        })
+      });
+
+      if (!imgRes.ok) {
+        const errText = await imgRes.text();
+        console.error('[IMAGEN ERROR]', errText);
+        return NextResponse.json({ response: `⚠️ Gagal generate gambar. Error: ${imgRes.statusText}` });
+      }
+
+      const data = await imgRes.json();
+      const imageBase64 = data.predictions?.[0]?.bytesBase64Encoded;
+      const mimeType = data.predictions?.[0]?.mimeType || 'image/png';
+
+      if (imageBase64) {
+        return NextResponse.json({ 
+          response: `![Generated Image](data:${mimeType};base64,${imageBase64})` 
+        });
+      }
+    }
 
     if (!messages || messages.length === 0) {
       return NextResponse.json(

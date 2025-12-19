@@ -141,11 +141,18 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       desc: 'Penalaran logika tercanggih', 
       icon: Sparkles
     },
-    { 
+  /*{ 
       id: 'gemini-3-pro-image-preview', 
       name: 'Gemini 3 Pro (Image)', 
       desc: 'Analisis visual tingkat lanjut', 
       icon: ImageIcon 
+    },
+  */
+    { 
+      id: 'gemini-3-flash-preview', 
+      name: 'Gemini 3 Flash', 
+      desc: 'Super cepat untuk chat & tugas harian', 
+      icon: Zap
     },
     { 
       id: 'gemini-2.5-pro', 
@@ -165,12 +172,13 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       desc: 'Sangat hemat & responsif', 
       icon: Feather
     },
-    { 
+  /*{ 
       id: 'gemini-2.5-flash-image', 
       name: 'Gemini 2.5 Flash (Image)', 
       desc: 'Pemrosesan gambar instan', 
       icon: ImageIcon 
     },
+  */
     { 
       id: 'gemini-2.0-flash', 
       name: 'Gemini 2.0 Flash', 
@@ -185,13 +193,13 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
     },
     { 
       id: 'gemini-flash-latest', 
-      name: 'Gemini Flash (Latest)', 
+      name: 'Gemini Flash', 
       desc: 'Versi Flash terkini', 
       icon: Zap 
     },
     { 
       id: 'gemini-flash-lite-latest', 
-      name: 'Gemini Flash Lite (Latest)', 
+      name: 'Gemini Flash Lite', 
       desc: 'Versi Lite terkini', 
       icon: Feather 
     },
@@ -213,12 +221,13 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       desc: 'Detail fotorealistik & tajam', 
       icon: Palette 
     },
-    { 
+  /*{ 
       id: 'veo-2.0-generate-001', 
       name: 'Veo 2.0 (Video)', 
       desc: 'Pembuatan konten video HD', 
       icon: Video 
     },
+  */
     { 
       id: 'gemini-robotics-er-1.5-preview', 
       name: 'Gemini Robotics 1.5', 
@@ -571,7 +580,6 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
         </div>
       </div>
 
-      {/* Messages Area - Adjusted for fixed header */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pt-20 pb-4 bg-slate-50/50">
         <div className="max-w-4xl mx-auto px-4 py-4 space-y-6">
           {(() => {

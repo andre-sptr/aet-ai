@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message, ChatMode } from '@/types';
 import { X, User, Volume2, Copy, RotateCw, Check, Pencil, Save, Code, Eye, FileText, MessageCircle, Maximize2, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { createPortal } from 'react-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import mermaid from 'mermaid';
 
 const CodeBlock = ({ inline, className, children, ...props }: any) => {
@@ -252,6 +253,193 @@ const Mermaid = ({ chart }: { chart: string }) => {
   );
 };
 
+const ImageViewer = ({ src, alt }: { src: string; alt?: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (isOpen) {
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [isOpen]);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale((prev) => Math.max(0.1, Math.min(5, prev + delta)));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  if (!src) return null;
+
+  return (
+    <>
+      <span 
+        onClick={() => setIsOpen(true)}
+        className="my-4 relative group/gen-image rounded-xl overflow-hidden border border-slate-200 bg-slate-50 inline-block max-w-full cursor-zoom-in hover:shadow-md transition-shadow"
+      >
+        <img
+          src={src}
+          alt={alt || 'Generated Image'}
+          className="max-w-full h-auto object-cover max-h-[400px]"
+          loading="lazy"
+        />
+        <span className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/gen-image:opacity-100 transition-opacity flex justify-end gap-2">
+          <a
+            href={src}
+            download={`aet_ai-${Date.now()}.png`}
+            onClick={(e) => e.stopPropagation()}
+            className="p-1.5 bg-white/20 text-white hover:bg-white/40 rounded-lg backdrop-blur-sm transition-colors flex items-center justify-center"
+            title="Download Gambar"
+          >
+            <Save className="w-4 h-4" />
+          </a>
+        </span>
+      </span>
+
+      {isOpen && createPortal(
+        <div
+          className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <div
+            className="flex items-center justify-between px-6 py-4 bg-white/5 border-b border-white/10 text-white z-20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-medium text-sm flex items-center gap-2">
+              <Eye className="w-4 h-4 text-blue-400" /> Image Viewer
+            </h3>
+
+            <div className="flex items-center gap-2 bg-black/20 p-1 rounded-lg backdrop-blur-md border border-white/10">
+              <button
+                onClick={() => setScale((s) => Math.max(0.1, s - 0.2))}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                title="Zoom Out"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <span className="text-xs font-mono min-w-[3rem] text-center">
+                {Math.round(scale * 100)}%
+              </span>
+              <button
+                onClick={() => setScale((s) => Math.min(5, s + 0.2))}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                title="Zoom In"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <div className="w-px h-4 bg-white/20 mx-1" />
+              <button
+                onClick={() => {
+                  setScale(1);
+                  setPosition({ x: 0, y: 0 });
+                }}
+                className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                title="Reset"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 hover:bg-red-500/20 text-red-400 hover:text-red-200 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div
+            className="flex-1 overflow-hidden relative cursor-move flex items-center justify-center select-none"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+                transformOrigin: 'center center',
+              }}
+              className="relative shadow-2xl"
+            >
+              <img
+                src={src}
+                alt={alt}
+                className="max-w-none pointer-events-none rounded-sm bg-slate-800"
+              />
+            </div>
+          </div>
+
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-none">
+             <div className="px-4 py-2 bg-black/50 text-white/70 text-xs rounded-full backdrop-blur border border-white/5">
+                Scroll Zoom • Tahan Geser
+             </div>
+             <a 
+                href={src}
+                download={`aet_ai-${Date.now()}.png`}
+                className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-bold rounded-full backdrop-blur shadow-lg pointer-events-auto flex items-center gap-2 transition-colors border border-white/10"
+                onClick={(e) => e.stopPropagation()}
+             >
+                <Save className="w-3.5 h-3.5" /> Download HD
+             </a>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+
+const VideoViewer = ({ src }: { src: string }) => {
+  return (
+    <div className="my-4 max-w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-900 shadow-sm relative group/video">
+      <video 
+        controls 
+        className="w-full h-auto max-h-[400px]"
+        src={src}
+      >
+        Browser tidak mendukung video tag.
+      </video>
+      <div className="absolute top-2 right-2 opacity-0 group-hover/video:opacity-100 transition-opacity">
+         <a 
+            href={src}
+            download={`generated-video-${Date.now()}.mp4`}
+            className="flex items-center gap-2 px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-full backdrop-blur-md transition-colors border border-white/10"
+         >
+            <Save className="w-3.5 h-3.5" /> Simpan
+         </a>
+      </div>
+    </div>
+  );
+};
+
 interface MessageBubbleProps {
   message: Message;
   mode?: ChatMode;
@@ -430,7 +618,11 @@ export default function MessageBubble({
             <div className="text-[15px] leading-7">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
+                urlTransform={(value) => value}
                 components={{
+                  img: ({ src, alt }) => {
+                    return <ImageViewer src={src as string} alt={alt} />;
+                  },
                   code: ({ node, inline, className, children, ...props }: any) => {
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1].trim() : ''; 
@@ -455,11 +647,19 @@ export default function MessageBubble({
                   li: ({children}) => <li className="pl-1">{children}</li>,
                   p: ({children}) => <p className="mb-3 last:mb-0 whitespace-pre-line">{children}</p>,
                   strong: ({children}) => <span className="font-bold opacity-90">{children}</span>,
-                  a: ({href, children}) => (
-                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300">
-                      {children}
-                    </a>
-                  ),
+                  a: ({ href, children }) => {
+                    if (!href) return null;
+                    const isVideo = href.startsWith('data:video') || href.endsWith('.mp4');
+
+                    if (isVideo) {
+                      return <VideoViewer src={href} />;
+                    }
+                    return (
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300">
+                        {children}
+                      </a>
+                    );
+                  },
                   h1: ({children}) => <h1 className="text-lg font-bold mb-2 mt-4 pb-2 border-b border-white/20">{children}</h1>,
                   h2: ({children}) => <h2 className="text-base font-bold mb-2 mt-4">{children}</h2>,
                   blockquote: ({children}) => (

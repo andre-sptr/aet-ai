@@ -3,6 +3,7 @@
 import { ChatModeConfig } from '@/types';
 import { Code2, FileText, MessageCircle, Sparkles, Zap, Shield, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface LandingPageProps {
   onSelectMode: (mode: ChatModeConfig) => void;
@@ -58,9 +59,15 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
 
           {/* Navigation Links (Hidden Mobile) */}
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <button className="hover:text-blue-600 transition-colors">Beranda</button>
-            <button className="hover:text-blue-600 transition-colors">Fitur</button>
-            <button className="hover:text-blue-600 transition-colors">Panduan</button>
+            <Link href="/coming-soon" className="hover:text-blue-600 transition-colors">
+              Berita
+            </Link>
+            <Link href="/coming-soon" className="hover:text-blue-600 transition-colors">
+              Kegiatan
+            </Link>
+            <Link href="/coming-soon" className="hover:text-blue-600 transition-colors">
+              Struktur Organisasi
+            </Link>
           </div>
 
           {/* Right Action */}
