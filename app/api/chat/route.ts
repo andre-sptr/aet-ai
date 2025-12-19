@@ -473,14 +473,23 @@ export async function POST(req: NextRequest) {
         }
       }
       if (tools.includes('diagram') || tools.includes('flowchart')) {
-        if (lastUserMessage.match(/(buat|gambarkan|susun|bikin)\s+(diagram|flowchart|alur|skema)/i)) {
-          finalSystemInstruction += `\n[TOOL: DIAGRAM/FLOWCHART AKTIF]
-          - User meminta visualisasi.
-          - WAJIB gunakan sintaks MERMAID.JS.
-          - Bungkus kode dalam block: \`\`\`mermaid ... \`\`\`
-          - Jangan gunakan ASCII art jika tidak diminta.
-          - Contoh Flowchart: graph TD; A-->B;
-          - Contoh Sequence: sequenceDiagram; Alice->>John: Hello;`;
+        if (lastUserMessage.match(/(buat|gambarkan|susun|bikin|tampilkan|contoh)\s+(diagram|flowchart|alur|skema|struktur|grafik)/i)) {
+          finalSystemInstruction += `
+            \n[TOOL: DIAGRAM/FLOWCHART AKTIF]
+            - User meminta visualisasi.
+            - WAJIB gunakan sintaks MERMAID.JS.
+            - Bungkus kode dalam block: \`\`\`mermaid ... \`\`\`
+            - Jangan gunakan ASCII art jika tidak diminta.
+            - Gunakan arah graph TD (Top-Down) atau LR (Left-Right) yang sesuai.
+            
+            Contoh Flowchart Sederhana:
+            \`\`\`mermaid
+            graph TD; 
+              A[Mulai] --> B{Keputusan};
+              B -- Ya --> C[Aksi 1];
+              B -- Tidak --> D[Aksi 2];
+            \`\`\`
+          `;
         }
       }
     }

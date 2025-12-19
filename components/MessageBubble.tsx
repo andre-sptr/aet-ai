@@ -89,17 +89,23 @@ const CodeBlock = ({ inline, className, children, ...props }: any) => {
 const Mermaid = ({ chart }: { chart: string }) => {
   const [svg, setSvg] = useState('');
   const [error, setError] = useState(false);
+  const idRef = useRef(`mermaid-${Math.random().toString(36).slice(2)}`);
 
   useEffect(() => {
     const renderChart = async () => {
+      if (!chart) return;
       try {
-        mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
-        const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-        const { svg } = await mermaid.render(id, chart);
-        setSvg(svg);
         setError(false);
+        mermaid.initialize({ 
+          startOnLoad: false, 
+          theme: 'neutral', 
+          securityLevel: 'loose',
+        });
+        
+        const { svg } = await mermaid.render(idRef.current, chart);
+        setSvg(svg);
       } catch (err) {
-        console.error('Mermaid render error:', err);
+        console.error('Mermaid error:', err);
         setError(true);
       }
     };
@@ -108,15 +114,15 @@ const Mermaid = ({ chart }: { chart: string }) => {
 
   if (error) {
     return (
-      <div className="p-3 bg-red-50 text-red-600 text-xs rounded border border-red-100 font-mono">
-        Gagal merender diagram. Kode tidak valid.
+      <div className="p-2 text-xs text-red-500 bg-red-50 border border-red-100 rounded">
+        Gagal memuat diagram (Syntax Error).
       </div>
     );
   }
 
   return (
     <div 
-      className="my-4 p-4 bg-white rounded-xl border border-slate-200 overflow-x-auto flex justify-center shadow-sm"
+      className="my-4 p-4 bg-white rounded-xl border border-slate-200 overflow-x-auto flex justify-center min-h-[100px]"
       dangerouslySetInnerHTML={{ __html: svg }} 
     />
   );
@@ -301,7 +307,25 @@ export default function MessageBubble({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  code: CodeBlock,
+                  code: ({ node, inline, className, children, ...props }: any) => {
+                    const match = /language-(\w+)/.exec(className || '');
+                    const language = match ? match[1] : '';
+                    const content = String(children).replace(/\n$/, '');
+
+                    if (!inline && language === 'mermaid') {
+                      return <Mermaid chart={content} />;
+                    }
+
+                    return (
+                      <CodeBlock 
+                        inline={inline} 
+                        className={className} 
+                        {...props}
+                      >
+                        {children}
+                      </CodeBlock>
+                    );
+                  },
                   ul: ({children}) => <ul className="list-disc pl-4 mb-3 space-y-1">{children}</ul>,
                   ol: ({children}) => <ol className="list-decimal pl-4 mb-3 space-y-1">{children}</ol>,
                   li: ({children}) => <li className="pl-1">{children}</li>,
