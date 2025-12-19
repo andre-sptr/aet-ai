@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { Message, ChatMode } from '@/types';
 import MessageBubble from './MessageBubble';
-import { Camera, Paperclip, X, ImageIcon, Send, Loader2, Trash2, ArrowLeft, Sparkles, FileText } from 'lucide-react';
+import { Camera, Paperclip, X, Send, Loader2, Trash2, ArrowLeft, FileText, Code, MessageCircle } from 'lucide-react';
 
 interface ChatInterfaceProps {
   mode: ChatMode;
@@ -20,6 +20,7 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,40 +91,87 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
     }
   };
 
-  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          const MAX_DIMENSION = 1280;
+          
+          if (width > height) {
+            if (width > MAX_DIMENSION) {
+              height *= MAX_DIMENSION / width;
+              width = MAX_DIMENSION;
+            }
+          } else {
+            if (height > MAX_DIMENSION) {
+              width *= MAX_DIMENSION / height;
+              height = MAX_DIMENSION;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+          resolve(dataUrl);
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Ukuran file terlalu besar (Max 5MB)');
-      return;
-    }
+    try {
+      let content = '';
+      let mimeType = file.type;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
+      if (file.type.startsWith('image/')) {
+        content = await compressImage(file);
+        
+        mimeType = 'image/jpeg'; 
+        
+      } else {
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Ukuran file dokumen terlalu besar (Max 5MB)');
+          e.target.value = ''; 
+          return;
+        }
+        
+        content = await new Promise<string>((resolve, reject) => {
+           const reader = new FileReader();
+           reader.onload = (evt) => resolve(evt.target?.result as string);
+           reader.onerror = reject;
+           reader.readAsDataURL(file);
+        });
+      }
+
       setAttachment({
-        content: result,
-        mimeType: file.type,
-        type: file.type.startsWith('image/') ? 'image' : 'file',
+        content: content,
+        mimeType: mimeType,
+        type: mimeType.startsWith('image/') ? 'image' : 'file',
         fileName: file.name
       });
-    };
-    reader.readAsDataURL(file);
-    
-    e.target.value = '';
-  };
-
-  const triggerFileInput = (captureMode?: boolean) => {
-    if (fileInputRef.current) {
-      if (captureMode) {
-        fileInputRef.current.setAttribute('capture', 'environment');
-        fileInputRef.current.accept = "image/*";
-      } else {
-        fileInputRef.current.removeAttribute('capture');
-        fileInputRef.current.accept = "image/*, application/pdf";
-      }
-      fileInputRef.current.click();
+      
+    } catch (error) {
+      console.error('Error processing file:', error);
+      alert('Gagal memproses file. Silakan coba lagi.');
+    } finally {
+      e.target.value = '';
     }
   };
 
@@ -194,7 +242,6 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
-      {/* Premium Header: Clean, White, Blur */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -211,7 +258,13 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
                   mode === 'report' ? 'bg-emerald-100 text-emerald-600' : 
                   'bg-violet-100 text-violet-600'}`}
               >
-                <Sparkles className="w-4 h-4" />
+                {mode === 'coding' ? (
+                  <Code className="w-4 h-4" />
+                ) : mode === 'report' ? (
+                  <FileText className="w-4 h-4" />
+                ) : (
+                  <MessageCircle className="w-4 h-4" />
+                )}
               </div>
               <div>
                 <h1 className="text-sm font-bold text-slate-900">{modeTitle}</h1>
@@ -247,6 +300,7 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
               >
                 <MessageBubble 
                   message={message}
+                  mode={mode}
                   onRetry={handleReload}
                   onEdit={handleEditStart}
                   onSave={handleEditSave}
@@ -261,8 +315,14 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
           
           {isLoading && (
             <div className="flex gap-4 animate-slide-down">
-               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm mt-1 bg-gradient-to-br from-blue-600 to-indigo-600'}`}>
+                {mode === 'coding' ? (
+                  <Code className="w-4 h-4" />
+                ) : mode === 'report' ? (
+                  <FileText className="w-4 h-4" />
+                ) : (
+                  <MessageCircle className="w-4 h-4" />
+                )}
               </div>
               <div className="bg-white rounded-2xl rounded-tl-none px-6 py-4 shadow-sm border border-slate-100">
                 <div className="flex gap-1.5">
@@ -315,20 +375,31 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
             ref={fileInputRef} 
             onChange={handleFileSelect} 
             className="hidden" 
+            accept="image/*, application/pdf"
+          />
+
+          <input 
+            type="file" 
+            ref={cameraInputRef} 
+            onChange={handleFileSelect} 
+            className="hidden"
+            accept="image/*"
+            capture="environment"
           />
 
           <div className="relative bg-white rounded-3xl shadow-[0_0_40px_-10px_rgba(0,0,0,0.08)] border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-100 transition-shadow flex items-end">
             <div className="flex items-center gap-1 pl-3 pb-3">
               <button 
-                onClick={() => triggerFileInput(false)}
+                onClick={() => fileInputRef.current?.click()} 
                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
                 title="Upload File"
                 disabled={isLoading}
               >
                 <Paperclip className="w-5 h-5" />
               </button>
+
               <button 
-                onClick={() => triggerFileInput(true)}
+                onClick={() => cameraInputRef.current?.click()}
                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
                 title="Kamera"
                 disabled={isLoading}

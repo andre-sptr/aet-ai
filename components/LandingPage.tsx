@@ -10,28 +10,28 @@ interface LandingPageProps {
 
 const CHAT_MODES: ChatModeConfig[] = [
   {
-    id: 'coding',
-    title: 'Coding Expert',
-    description: 'Debugging & penulisan kode Python, C++, HTML dengan presisi tinggi.',
-    icon: 'code',
-    systemInstruction: '',
-    color: 'blue'
-  },
-  {
-    id: 'report',
-    title: 'Academic Writer',
-    description: 'Analisis laporan, jurnal, dan penulisan ilmiah terstruktur.',
-    icon: 'file',
-    systemInstruction: '',
-    color: 'green'
-  },
-  {
     id: 'daily',
     title: 'Smart Companion',
     description: 'Diskusi interaktif untuk produktivitas sehari-hari.',
     icon: 'message',
     systemInstruction: '',
     color: 'purple'
+  },
+  {
+    id: 'report',
+    title: 'Academic Writer',
+    description: 'Analisis laporan, jurnal, dan penulisan PA terstruktur.',
+    icon: 'file',
+    systemInstruction: '',
+    color: 'green'
+  },
+  {
+    id: 'coding',
+    title: 'Coding Expert',
+    description: 'Debugging & penulisan kode Python, C++, HTML dengan presisi tinggi.',
+    icon: 'code',
+    systemInstruction: '',
+    color: 'blue'
   }
 ];
 
@@ -42,15 +42,14 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo Brand */}
           <div className="flex items-center gap-3 cursor-pointer group">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:scale-105 transition-transform overflow-hidden">
-              <Image 
-                src="/favicon.ico" 
-                alt="Logo AET" 
-                width={32} 
-                height={32} 
-                className="w-6 h-6 object-contain" 
-              />
-            </div>
+            <Image 
+              src="/favicon.ico" 
+              alt="Logo AET" 
+              width={56} 
+              height={56} 
+              className="w-14 h-14 object-contain" 
+              unoptimized
+            />
             <div>
               <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none ">AET AI</h1>
               <p className="text-[14px] text-slate-500 font-medium tracking-wide">Himpunan Mahasiswa AET PCR</p>

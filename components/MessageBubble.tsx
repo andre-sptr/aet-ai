@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Message } from '@/types';
-import { X, User, Sparkles, Volume2, Copy, RotateCw, Check, Pencil, Save, Code, Eye, FileText } from 'lucide-react';
+import { Message, ChatMode } from '@/types';
+import { X, User, Volume2, Copy, RotateCw, Check, Pencil, Save, Code, Eye, FileText, MessageCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -87,6 +87,7 @@ const CodeBlock = ({ inline, className, children, ...props }: any) => {
 
 interface MessageBubbleProps {
   message: Message;
+  mode?: ChatMode;
   onRetry?: (message: Message) => void;
   onEdit?: (message: Message) => void;
   onSave?: (id: string, newContent: string) => void;
@@ -97,7 +98,8 @@ interface MessageBubbleProps {
 }
 
 export default function MessageBubble({ 
-  message, 
+  message,
+  mode = 'daily',
   onRetry, 
   onEdit, 
   onSave, 
@@ -160,7 +162,17 @@ export default function MessageBubble({
     <div className={`flex gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'} group items-start`}>
       {/* Avatar */}
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm mt-1 ${isUser ? 'bg-slate-200' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`}>
-        {isUser ? <User className="w-4 h-4 text-slate-600" /> : <Sparkles className="w-4 h-4 text-white" />}
+        {isUser ? (
+          <User className="w-4 h-4 text-slate-600" />
+        ) : (
+          mode === 'coding' ? (
+            <Code className="w-4 h-4 text-white" />
+          ) : mode === 'report' ? (
+            <FileText className="w-4 h-4 text-white" />
+          ) : (
+            <MessageCircle className="w-4 h-4 text-white" />
+          )
+        )}
       </div>
 
       {/* Bubble Container */}
@@ -348,7 +360,7 @@ export default function MessageBubble({
                   className="absolute bottom-6 flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-colors border border-white/10 shadow-xl"
                 >
                   <Save className="w-5 h-5" />
-                  <span className="text-sm font-medium">Download Original</span>
+                  <span className="text-sm font-medium">Download</span>
                 </a>
               </div>
             </div>
