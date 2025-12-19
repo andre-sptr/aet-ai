@@ -57,7 +57,6 @@ export default function ComingSoon() {
               <span className="font-bold text-xl tracking-tight text-white/90">AET AI</span>
             </div>
             <div className="hidden md:flex items-center gap-4">
-               {/* Social Icons */}
                <SocialLink 
                  title="@andree.sptrr" 
                  href="https://www.instagram.com/andree.sptrr/" 

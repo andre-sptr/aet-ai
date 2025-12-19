@@ -630,7 +630,6 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
         </div>
       </div>
 
-      {/* Input Area */}
       <div className="bg-white/80 backdrop-blur-lg border-t border-slate-100 pb-6 pt-4 px-4">
         <div className="max-w-4xl mx-auto relative">
           {attachment && (

@@ -515,7 +515,7 @@ export default function MessageBubble({
 
   return (
     <div className={`flex gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'} group items-start`}>
-      {/* Avatar */}
+
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm mt-1 ${isUser ? 'bg-slate-200' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`}>
         {isUser ? (
           <User className="w-4 h-4 text-slate-600" />
@@ -530,7 +530,6 @@ export default function MessageBubble({
         )}
       </div>
 
-      {/* Bubble Container */}
       <div className={`flex flex-col gap-1 max-w-[85%] ${isEditing ? 'w-full' : 'w-fit'}`}>
         <div className={`px-5 py-4 shadow-sm relative transition-all duration-200 ${isUser ? 'bg-blue-600 text-white rounded-[24px] rounded-br-none' : 'bg-white text-slate-800 border border-slate-100 rounded-[24px] rounded-bl-none hover:shadow-md'}`}>
           {message.attachment && (
@@ -751,8 +750,7 @@ export default function MessageBubble({
             </div>
           )}
         </div>
-        
-        {/* Timestamp */}
+
         <div className={`flex items-center gap-1.5 px-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
           <span className="text-[10px] text-slate-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
             {new Date(message.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}

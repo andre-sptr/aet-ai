@@ -41,7 +41,6 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
     <div className="min-h-screen bg-slate-50 relative overflow-hidden selection:bg-blue-100 selection:text-blue-900">
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-white/50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          {/* Logo Brand */}
           <div className="flex items-center gap-3 cursor-pointer group">
             <Image 
               src="/favicon.ico" 
@@ -57,7 +56,6 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
             </div>
           </div>
 
-          {/* Navigation Links (Hidden Mobile) */}
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
             <Link href="/coming-soon" className="hover:text-blue-600 transition-colors">
               Berita
@@ -69,8 +67,6 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
               Struktur Organisasi
             </Link>
           </div>
-
-          {/* Right Action */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100 text-xs font-semibold">
               <span className="relative flex h-2 w-2">
@@ -89,7 +85,6 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 py-20 lg:py-32">
-        {/* Header Section */}
         <div className="flex flex-col items-center text-center max-w-5xl mx-auto mb-24 animate-fade-in px-4">
           <div className="inline-flex items-center gap-2 bg-white border border-slate-200 shadow-sm px-4 py-1.5 rounded-full mb-8">
             <Sparkles className="w-4 h-4 text-amber-500" />
@@ -114,7 +109,6 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
           </div>
         </div>
 
-        {/* Cards Grid */}
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {CHAT_MODES.map((mode, index) => {
             const icons = { code: Code2, file: FileText, message: MessageCircle };
@@ -154,7 +148,6 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
         </div>
       </div>
 
-      {/* --- FOOTER --- */}
       <footer className="relative z-10 py-6 mt-20 border-t border-slate-200 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-black font-medium text-sm tracking-wide">
