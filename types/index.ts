@@ -25,6 +25,7 @@ export interface ChatModeConfig {
 export interface ChatRequest {
   messages: Message[];
   mode: ChatMode;
+  model?: string;
 }
 
 export interface ChatResponse {

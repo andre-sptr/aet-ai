@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, ChangeEvent } from 'react';
 import { Message, ChatMode } from '@/types';
 import MessageBubble from './MessageBubble';
-import { Camera, Paperclip, X, Send, Loader2, Trash2, ArrowLeft, FileText, Code, MessageCircle } from 'lucide-react';
+import { Camera, Paperclip, X, Send, Loader2, Trash2, ArrowLeft, FileText, Code, MessageCircle, Sparkles, Zap, ChevronDown, Check, Feather, Image as ImageIcon, Bot, Palette, Video, AlertTriangle, Calculator, Clock, CloudSun, Coins, CheckSquare, Settings, Square } from 'lucide-react';
 
 interface ChatInterfaceProps {
   mode: ChatMode;
@@ -17,16 +17,183 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
   const [isLoading, setIsLoading] = useState(false);
   const [attachment, setAttachment] = useState<{ content: string; mimeType: string; type: 'image' | 'file'; fileName: string; } | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [isModelOpen, setIsModelOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [activeTools, setActiveTools] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const STORAGE_KEY = `aet_ai_chat_history_${mode}`;
+
+  const AVAILABLE_TOOLS = [
+    { 
+      id: 'calculator', 
+      name: 'Kalkulator', 
+      desc: 'Operasi matematika', 
+      icon: Calculator,
+      color: 'text-orange-500 bg-orange-50'
+    },
+    { 
+      id: 'time', 
+      name: 'Waktu Dunia', 
+      desc: 'Cek zona waktu', 
+      icon: Clock,
+      color: 'text-violet-500 bg-violet-50'
+    },
+    { 
+      id: 'weather', 
+      name: 'Cuaca', 
+      desc: 'Info cuaca live', 
+      icon: CloudSun,
+      color: 'text-sky-500 bg-sky-50'
+    },
+    { 
+      id: 'currency', 
+      name: 'Kurs Mata Uang', 
+      desc: 'Konversi valas', 
+      icon: Coins,
+      color: 'text-emerald-500 bg-emerald-50'
+    },
+  ];
+
+  const toggleTool = (toolId: string) => {
+    setActiveTools(prev => 
+      prev.includes(toolId) 
+        ? prev.filter(id => id !== toolId) 
+        : [...prev, toolId]               
+    );
+  };
+
+  const models = [
+    { 
+      id: 'gemini-3-pro-preview', 
+      name: 'Gemini 3 Pro', 
+      desc: 'Penalaran logika tercanggih', 
+      icon: Sparkles
+    },
+    { 
+      id: 'gemini-3-pro-image-preview', 
+      name: 'Gemini 3 Pro (Image)', 
+      desc: 'Analisis visual tingkat lanjut', 
+      icon: ImageIcon 
+    },
+    { 
+      id: 'gemini-2.5-pro', 
+      name: 'Gemini 2.5 Pro', 
+      desc: 'Terbaik untuk tugas kompleks', 
+      icon: Sparkles 
+    },
+    { 
+      id: 'gemini-2.5-flash', 
+      name: 'Gemini 2.5 Flash', 
+      desc: 'Cepat, ringan & serbaguna', 
+      icon: Zap 
+    },
+    { 
+      id: 'gemini-2.5-flash-lite', 
+      name: 'Gemini 2.5 Flash Lite', 
+      desc: 'Sangat hemat & responsif', 
+      icon: Feather
+    },
+    { 
+      id: 'gemini-2.5-flash-image', 
+      name: 'Gemini 2.5 Flash (Image)', 
+      desc: 'Pemrosesan gambar instan', 
+      icon: ImageIcon 
+    },
+    { 
+      id: 'gemini-2.0-flash', 
+      name: 'Gemini 2.0 Flash', 
+      desc: 'Standar kecepatan & stabil', 
+      icon: Zap 
+    },
+    { 
+      id: 'gemini-2.0-flash-lite', 
+      name: 'Gemini 2.0 Flash Lite', 
+      desc: 'Opsi paling efisien', 
+      icon: Feather 
+    },
+    { 
+      id: 'gemini-flash-latest', 
+      name: 'Gemini Flash (Latest)', 
+      desc: 'Versi Flash terkini', 
+      icon: Zap 
+    },
+    { 
+      id: 'gemini-flash-lite-latest', 
+      name: 'Gemini Flash Lite (Latest)', 
+      desc: 'Versi Lite terkini', 
+      icon: Feather 
+    },
+    { 
+      id: 'imagen-4.0-fast-generate-001', 
+      name: 'Imagen 4.0 Fast', 
+      desc: 'Generasi gambar kilat', 
+      icon: Zap 
+    },
+    { 
+      id: 'imagen-4.0-generate-001', 
+      name: 'Imagen 4.0', 
+      desc: 'Kualitas gambar tinggi', 
+      icon: ImageIcon 
+    },
+    { 
+      id: 'imagen-4.0-ultra-generate-001', 
+      name: 'Imagen 4.0 Ultra', 
+      desc: 'Detail fotorealistik & tajam', 
+      icon: Palette 
+    },
+    { 
+      id: 'veo-2.0-generate-001', 
+      name: 'Veo 2.0 (Video)', 
+      desc: 'Pembuatan konten video HD', 
+      icon: Video 
+    },
+    { 
+      id: 'gemini-robotics-er-1.5-preview', 
+      name: 'Gemini Robotics 1.5', 
+      desc: 'Spesialis spasial & robotik', 
+      icon: Bot 
+    },
+  ];
+
+  const activeModel = models.find(m => m.id === selectedModel);
+  const ActiveIcon = activeModel?.icon || Zap;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
+    const savedHistory = localStorage.getItem(STORAGE_KEY);
+    
+    if (savedHistory) {
+      try {
+        const parsedHistory = JSON.parse(savedHistory);
+        const hydratedHistory = parsedHistory.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        setMessages(hydratedHistory);
+      } catch (error) {
+        console.error("Gagal memuat riwayat chat:", error);
+        initializeGreeting(); 
+      }
+    } else {
+      initializeGreeting();
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    }
+  }, [messages, mode]);
+
+  const initializeGreeting = () => {
     const greetingMessage: Message = {
       id: Date.now().toString(),
       role: 'assistant',
@@ -34,7 +201,7 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       timestamp: new Date()
     };
     setMessages([greetingMessage]);
-  }, []);
+  };
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -60,7 +227,16 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: apiMessages,
-          mode
+          mode,
+          model: selectedModel,
+          tools: activeTools,
+          clientInfo: {
+            time: new Date().toLocaleString('id-ID', { 
+              dateStyle: 'full', 
+              timeStyle: 'medium' 
+            }),
+            utcTime: new Date().toUTCString(),
+          }
         })
       });
 
@@ -230,15 +406,20 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
   };
   
   const handleClearChat = () => {
-    if (confirm('Hapus semua percakapan?')) {
-        setMessages([{
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: 'Halo! Saya asisten AI untuk Himpunan Mahasiswa AET PCR. Ada yang bisa saya bantu?',
-          timestamp: new Date()
-        }]);
-      }
-  }
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmClearChat = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    const greetingMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: 'Halo! Saya asisten AI Himpunan Mahasiswa AET PCR. Ada yang bisa saya bantu?',
+      timestamp: new Date()
+    };
+    setMessages([greetingMessage]);
+    setIsDeleteModalOpen(false);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
@@ -276,13 +457,26 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
             </div>
           </div>
 
-          <button
-            onClick={handleClearChat}
-            className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-colors"
-            title="Clear Chat"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/60 rounded-full">
+              <ActiveIcon className="w-3.5 h-3.5 text-blue-600" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-slate-700 leading-none">
+                  {activeModel?.name}
+                </span>
+              </div>
+            </div>
+
+            <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
+
+            <button
+              onClick={handleClearChat}
+              className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-colors"
+              title="Hapus Percakapan"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -387,7 +581,7 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
             capture="environment"
           />
 
-          <div className="relative bg-white rounded-3xl shadow-[0_0_40px_-10px_rgba(0,0,0,0.08)] border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-blue-100 transition-shadow flex items-end">
+          <div className="relative bg-white rounded-3xl shadow-[0_0_40px_-10px_rgba(0,0,0,0.08)] border border-slate-200 focus-within:ring-2 focus-within:ring-blue-100 transition-shadow flex items-end">
             <div className="flex items-center gap-1 pl-3 pb-3">
               <button 
                 onClick={() => fileInputRef.current?.click()} 
@@ -406,6 +600,87 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
               >
                 <Camera className="w-5 h-5" />
               </button>
+              <div className="relative">
+                <button
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  className={`p-2 rounded-xl transition-colors transition-transform active:scale-95
+                    ${isSettingsOpen 
+                      ? 'bg-slate-100 text-slate-700' 
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'}
+                  `}
+                  title="Tools Settings"
+                  disabled={isLoading}
+                >
+                  <Settings className={`w-5 h-5 transition-transform duration-500 ${isSettingsOpen ? 'rotate-90' : ''}`} />
+                  {activeTools.length > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border border-white" />
+                  )}
+                </button>
+
+                {isSettingsOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-[9998]" 
+                      onClick={() => setIsSettingsOpen(false)} 
+                    />
+                    
+                    <div className="absolute bottom-full left-0 mb-3 w-64 p-2 bg-white rounded-2xl shadow-2xl shadow-slate-300/50 border border-slate-100 z-[9999] animate-in fade-in zoom-in-95 duration-200 origin-bottom-left">
+                      <div className="px-3 py-2 border-b border-slate-50 mb-1">
+                        <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Aktifkan Tools AI
+                        </h3>
+                      </div>
+
+                      <div className="space-y-1">
+                        {AVAILABLE_TOOLS.map((tool) => {
+                          const Icon = tool.icon;
+                          const isActive = activeTools.includes(tool.id);
+
+                          return (
+                            <button
+                              key={tool.id}
+                              onClick={() => toggleTool(tool.id)}
+                              className={`
+                                w-full flex items-center gap-3 p-2 rounded-xl transition-all duration-200 group
+                                ${isActive ? 'bg-slate-50' : 'hover:bg-slate-50'}
+                              `}
+                            >
+                              <div className={`transition-colors ${isActive ? 'text-blue-600' : 'text-slate-300 group-hover:text-slate-400'}`}>
+                                {isActive ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                              </div>
+
+                              <div className="flex items-center gap-3 flex-1 text-left">
+                                <div className={`p-1.5 rounded-lg ${tool.color}`}>
+                                  <Icon className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <p className={`text-xs font-semibold ${isActive ? 'text-slate-700' : 'text-slate-500'}`}>
+                                    {tool.name}
+                                  </p>
+                                  <p className="text-[10px] text-slate-400">
+                                    {tool.desc}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      {activeTools.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-slate-50">
+                          <button 
+                            onClick={() => { setActiveTools([]); setIsSettingsOpen(false); }}
+                            className="w-full py-1.5 text-[10px] font-medium text-slate-400 hover:text-red-500 transition-colors"
+                          >
+                            Reset Semua Tools
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             <textarea
@@ -420,7 +695,96 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
               disabled={isLoading}
             />
 
-            <div className="pr-3 pb-3">
+            <div className="pr-3 pb-3 flex items-center gap-2">
+              <div className="relative">
+                <button
+                  onClick={() => setIsModelOpen(!isModelOpen)}
+                  disabled={isLoading}
+                  className={`
+                    group flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 border
+                    ${isModelOpen 
+                      ? 'bg-blue-50 border-blue-200 text-blue-600' 
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'}
+                  `}
+                  title="Ganti Model AI"
+                >
+                  <span className="opacity-90">Model</span>
+                  <ChevronDown 
+                    className={`w-3.5 h-3.5 transition-transform duration-300 text-slate-400 group-hover:text-slate-600
+                      ${isModelOpen ? 'rotate-180' : ''}
+                    `} 
+                  />
+                </button>
+
+                {isModelOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-[9998]" 
+                      onClick={() => setIsModelOpen(false)} 
+                    />
+                    
+                    <div className="absolute bottom-full right-0 mb-3 w-64 p-1.5 bg-white rounded-2xl shadow-2xl shadow-slate-300/50 border border-slate-100 z-[9999] animate-in fade-in zoom-in-95 duration-200 origin-bottom-right">
+                      <div className="px-3 py-2 mb-1 border-b border-slate-50 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Pilih Kecerdasan AI
+                        </span>
+                        <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md font-medium">
+                          {modeTitle}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-1 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                        {models.map((m) => {
+                          const Icon = m.icon;
+                          const isSelected = selectedModel === m.id;
+                          
+                          return (
+                            <button
+                              key={m.id}
+                              onClick={() => {
+                                setSelectedModel(m.id);
+                                setIsModelOpen(false);
+                              }}
+                              className={`
+                                w-full flex items-start gap-3 p-2 rounded-xl text-left transition-all duration-200 group
+                                ${isSelected 
+                                  ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' 
+                                  : 'hover:bg-slate-50 text-slate-700'}
+                              `}
+                            >
+                              <div className={`
+                                mt-0.5 p-2 rounded-lg transition-colors shadow-sm flex-shrink-0
+                                ${isSelected ? 'bg-blue-600 text-white shadow-blue-200' : 'bg-white border border-slate-100 text-slate-400 group-hover:text-blue-500 group-hover:border-blue-100'}
+                              `}>
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <span className={`text-xs font-bold truncate ${isSelected ? 'text-blue-700' : 'text-slate-700'}`}>
+                                    {m.name}
+                                  </span>
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />}
+                                </div>
+                                <p className={`text-[10px] mt-0.5 leading-relaxed line-clamp-2 ${isSelected ? 'text-blue-600/80' : 'text-slate-400'}`}>
+                                  {m.desc}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      <div className="mt-2 px-2 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+                        <p className="text-[9px] text-slate-400 text-center leading-tight">
+                          Gunakan <strong>2.5 Pro</strong> untuk tugas kompleks dan analisis mendalam.
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <button
                 onClick={handleSend}
                 disabled={(!input.trim() && !attachment) || isLoading}
@@ -433,6 +797,47 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
           <p className="text-[10px] text-slate-400 mt-3 text-center">AI dapat melakukan kesalahan. Mohon verifikasi informasi penting.</p>
         </div>
       </div>
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsDeleteModalOpen(false)}
+          />
+
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 transform transition-all animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
+              </div>
+
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
+                Hapus Percakapan?
+              </h3>
+              
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                Anda akan menghapus semua riwayat chat di sesi ini. Tindakan ini tidak dapat dibatalkan.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition-colors"
+                >
+                  Batal
+                </button>
+                
+                <button
+                  onClick={confirmClearChat}
+                  className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-red-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Ya, Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
