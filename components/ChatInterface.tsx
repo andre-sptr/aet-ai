@@ -123,7 +123,7 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       desc: 'Hex <-> RGB', 
       icon: Palette,
       color: 'text-fuchsia-500 bg-fuchsia-50'
-    } 
+    }
   ];
 
   const toggleTool = (toolId: string) => {

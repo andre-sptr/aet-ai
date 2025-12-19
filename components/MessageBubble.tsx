@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message, ChatMode } from '@/types';
-import { X, User, Volume2, Copy, RotateCw, Check, Pencil, Save, Code, Eye, FileText, MessageCircle, Maximize2, RotateCcw, ZoomIn, ZoomOut, Download, Film, ImageIcon, Play } from 'lucide-react';
+import { X, User, Volume2, Copy, RotateCw, Check, Pencil, Save, Code, Eye, FileText, MessageCircle, Maximize2, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -252,73 +252,6 @@ const Mermaid = ({ chart }: { chart: string }) => {
   );
 };
 
-const MediaViewer = ({ src, alt, type }: { src: string, alt?: string, type: 'image' | 'video' }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  const handleDownload = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const response = await fetch(src);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = alt || `download-${Date.now()}.${type === 'video' ? 'mp4' : 'png'}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Download error:', err);
-      window.open(src, '_blank');
-    }
-  };
-
-  return (
-    <>
-      <div 
-        className="group relative my-3 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-w-sm cursor-pointer hover:shadow-lg transition-all duration-300"
-        onClick={() => setIsOpen(true)}
-      >
-        {!isLoaded && (
-           <div className="absolute inset-0 bg-slate-200 animate-pulse flex items-center justify-center">
-              {type === 'image' ? <ImageIcon className="w-6 h-6 text-slate-400" /> : <Film className="w-6 h-6 text-slate-400" />}
-           </div>
-        )}
-        
-        {type === 'video' ? (
-          <video src={src} className="w-full h-full max-h-[250px] object-cover" onLoadedData={() => setIsLoaded(true)} muted />
-        ) : (
-          <img src={src} alt={alt} className={`w-full h-auto max-h-[300px] object-cover transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setIsLoaded(true)} />
-        )}
-
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-            {type === 'video' && <div className="p-2 bg-black/50 rounded-full"><Play className="w-5 h-5 text-white" /></div>}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-2">
-               <button onClick={handleDownload} className="p-1.5 bg-black/50 text-white rounded-lg"><Download className="w-4 h-4" /></button>
-            </div>
-        </div>
-      </div>
-
-      {isOpen && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200" onClick={() => setIsOpen(false)}>
-          <button className="absolute top-4 right-4 p-2 bg-white/10 text-white rounded-full hover:bg-white/20" onClick={() => setIsOpen(false)}><X className="w-6 h-6" /></button>
-          <div className="relative max-w-7xl max-h-[90vh] flex flex-col items-center" onClick={e => e.stopPropagation()}>
-             {type === 'video' ? (
-                <video src={src} controls autoPlay className="max-w-full max-h-[85vh] rounded shadow-2xl" />
-             ) : (
-                <img src={src} alt={alt} className="max-w-full max-h-[85vh] object-contain rounded shadow-2xl" />
-             )}
-             <button onClick={handleDownload} className="mt-4 flex gap-2 px-6 py-2 bg-white/10 text-white rounded-full border border-white/10 hover:bg-white/20">
-                <Download className="w-4 h-4" /> Download {type === 'image' ? 'Gambar' : 'Video'}
-             </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-};
-
 interface MessageBubbleProps {
   message: Message;
   mode?: ChatMode;
@@ -498,42 +431,35 @@ export default function MessageBubble({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  img: ({ src, alt }) => {
-                    const safeSrc = typeof src === 'string' ? src : String(src || '');
-                    return <MediaViewer src={safeSrc} alt={alt} type="image" />;
-                  },
-
-                  a: ({ href, children }) => {
-                    const url = href || '';
-                    const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
-                    
-                    if (isVideo) {
-                      return <MediaViewer src={url} alt={String(children)} type="video" />;
-                    }
-                    return (
-                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300 break-all">
-                        {children}
-                      </a>
-                    );
-                  },
-
                   code: ({ node, inline, className, children, ...props }: any) => {
                     const match = /language-(\w+)/.exec(className || '');
-                    const language = match ? match[1] : '';
+                    const language = match ? match[1].trim() : ''; 
                     const content = String(children).replace(/\n$/, '');
 
                     if (!inline && language === 'mermaid') {
                       return <Mermaid chart={content} />;
                     }
 
-                    return <CodeBlock inline={inline} className={className} {...props}>{children}</CodeBlock>;
+                    return (
+                      <CodeBlock 
+                        inline={inline} 
+                        className={className} 
+                        {...props}
+                      >
+                        {children}
+                      </CodeBlock>
+                    );
                   },
-
                   ul: ({children}) => <ul className="list-disc pl-4 mb-3 space-y-1">{children}</ul>,
                   ol: ({children}) => <ol className="list-decimal pl-4 mb-3 space-y-1">{children}</ol>,
                   li: ({children}) => <li className="pl-1">{children}</li>,
                   p: ({children}) => <p className="mb-3 last:mb-0 whitespace-pre-line">{children}</p>,
                   strong: ({children}) => <span className="font-bold opacity-90">{children}</span>,
+                  a: ({href, children}) => (
+                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300">
+                      {children}
+                    </a>
+                  ),
                   h1: ({children}) => <h1 className="text-lg font-bold mb-2 mt-4 pb-2 border-b border-white/20">{children}</h1>,
                   h2: ({children}) => <h2 className="text-base font-bold mb-2 mt-4">{children}</h2>,
                   blockquote: ({children}) => (
