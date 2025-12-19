@@ -472,25 +472,25 @@ export async function POST(req: NextRequest) {
             finalSystemInstruction += `\n[INFO] Gagal melakukan pencarian web. Beritahu user untuk mencoba lagi nanti.`;
         }
       }
-      if (tools.includes('diagram') || tools.includes('flowchart')) {
-        if (lastUserMessage.match(/(buat|gambarkan|susun|bikin|tampilkan|contoh)\s+(diagram|flowchart|alur|skema|struktur|grafik)/i)) {
+      const isDiagramRequest = lastUserMessage.match(/(buat|gambarkan|susun|bikin|tampilkan|contoh|berikan)\s+(diagram|flowchart|alur|skema|struktur|grafik|mindmap)/i);
+      if (isDiagramRequest || (tools && (tools.includes('diagram') || tools.includes('flowchart')))) {
           finalSystemInstruction += `
-            \n[TOOL: DIAGRAM/FLOWCHART AKTIF]
-            - User meminta visualisasi.
+            \n[TOOL: DIAGRAM GENERATOR AKTIF]
+            - User meminta visualisasi (Flowchart/Diagram).
             - WAJIB gunakan sintaks MERMAID.JS.
-            - Bungkus kode dalam block: \`\`\`mermaid ... \`\`\`
-            - Jangan gunakan ASCII art jika tidak diminta.
-            - Gunakan arah graph TD (Top-Down) atau LR (Left-Right) yang sesuai.
+            - Bungkus kode dalam block markdown: \`\`\`mermaid ... \`\`\`
+            - Gunakan 'graph TD' (atas-ke-bawah) atau 'graph LR' (kiri-ke-kanan).
+            - HINDARI ERROR SYNTAX: Apit semua teks label dengan tanda kutip ganda (").
             
-            Contoh Flowchart Sederhana:
+            Contoh Struktur yang Benar:
             \`\`\`mermaid
-            graph TD; 
-              A[Mulai] --> B{Keputusan};
-              B -- Ya --> C[Aksi 1];
-              B -- Tidak --> D[Aksi 2];
+            graph TD
+              A["Mulai"] --> B{"Cek Kondisi"}
+              B -- "Ya" --> C["Lakukan Aksi"]
+              B -- "Tidak" --> D["Selesai"]
             \`\`\`
+            - Jangan berikan penjelasan panjang lebar. Langsung berikan kode diagramnya.
           `;
-        }
       }
     }
 

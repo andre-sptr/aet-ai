@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message, ChatMode } from '@/types';
-import { X, User, Volume2, Copy, RotateCw, Check, Pencil, Save, Code, Eye, FileText, MessageCircle } from 'lucide-react';
+import { X, User, Volume2, Copy, RotateCw, Check, Pencil, Save, Code, Eye, FileText, MessageCircle, Maximize2, RotateCcw, ZoomIn, ZoomOut, Download, Film, ImageIcon, Play } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -53,7 +53,6 @@ const CodeBlock = ({ inline, className, children, ...props }: any) => {
           </button>
        </div>
 
-       {/* Content Area */}
        {viewMode === 'preview' && language === 'html' ? (
           <div className="bg-white h-auto min-h-[200px] border-b border-slate-100 relative">
              <div className="absolute top-0 left-0 right-0 h-6 bg-slate-100 flex items-center px-2 gap-1 border-b border-slate-200">
@@ -91,6 +90,12 @@ const Mermaid = ({ chart }: { chart: string }) => {
   const [error, setError] = useState(false);
   const idRef = useRef(`mermaid-${Math.random().toString(36).slice(2)}`);
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   useEffect(() => {
     const renderChart = async () => {
       if (!chart) return;
@@ -100,31 +105,217 @@ const Mermaid = ({ chart }: { chart: string }) => {
           startOnLoad: false, 
           theme: 'neutral', 
           securityLevel: 'loose',
+          fontFamily: 'inherit'
         });
         
         const { svg } = await mermaid.render(idRef.current, chart);
         setSvg(svg);
       } catch (err) {
-        console.error('Mermaid error:', err);
+        console.error('Mermaid render error:', err);
         setError(true);
       }
     };
-    renderChart();
+    const timeout = setTimeout(renderChart, 100);
+    return () => clearTimeout(timeout);
   }, [chart]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [isOpen]);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale(prev => Math.max(0.5, Math.min(4, prev + delta)));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
 
   if (error) {
     return (
-      <div className="p-2 text-xs text-red-500 bg-red-50 border border-red-100 rounded">
-        Gagal memuat diagram (Syntax Error).
+      <div className="my-4 flex flex-col gap-2">
+        <div className="p-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-md font-medium">
+          ⚠️ Gagal merender diagram. Kode sumber:
+        </div>
+        <pre className="p-4 bg-slate-900 text-slate-100 rounded-lg text-xs font-mono overflow-x-auto whitespace-pre">{chart}</pre>
       </div>
     );
   }
 
+  if (!svg) {
+    return <div className="p-4 text-xs text-slate-400 italic animate-pulse">Memproses diagram...</div>;
+  }
+
   return (
-    <div 
-      className="my-4 p-4 bg-white rounded-xl border border-slate-200 overflow-x-auto flex justify-center min-h-[100px]"
-      dangerouslySetInnerHTML={{ __html: svg }} 
-    />
+    <>
+      <div 
+        className="my-4 border border-slate-200 rounded-xl overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer group relative"
+        onClick={() => setIsOpen(true)}
+      >
+        <div className="bg-slate-50 px-3 py-2 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500">
+           <span className="font-medium flex items-center gap-1.5">
+              <Maximize2 className="w-3.5 h-3.5 text-blue-500" /> 
+              Diagram Preview
+           </span>
+           <span className="text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+              Klik untuk Zoom
+           </span>
+        </div>
+
+        <div className="relative max-h-[250px] overflow-hidden bg-slate-50/30">
+           <div 
+             className="p-6 flex justify-center opacity-80 group-hover:opacity-100 transition-opacity scale-90 origin-top"
+             dangerouslySetInnerHTML={{ __html: svg }}
+           />
+           
+           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
+           
+           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <button className="bg-white text-blue-600 px-4 py-2 rounded-full shadow-lg border border-blue-100 text-sm font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform">
+                <Maximize2 className="w-4 h-4" /> Fullscreen
+              </button>
+           </div>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div 
+            className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-200"
+            onClick={() => setIsOpen(false)}
+        >
+           <div 
+             className="flex items-center justify-between px-6 py-4 bg-white/5 border-b border-white/10 text-white z-20"
+             onClick={(e) => e.stopPropagation()} 
+            >
+              <h3 className="font-medium text-sm flex items-center gap-2">
+                 <FileText className="w-4 h-4 text-blue-400" /> Viewer Diagram
+              </h3>
+              
+              <div className="flex items-center gap-2 bg-black/20 p-1 rounded-lg backdrop-blur-md border border-white/10">
+                 <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))} className="p-1.5 hover:bg-white/20 rounded transition-colors" title="Zoom Out"><ZoomOut className="w-4 h-4" /></button>
+                 <span className="text-xs font-mono min-w-[3rem] text-center">{Math.round(scale * 100)}%</span>
+                 <button onClick={() => setScale(s => Math.min(4, s + 0.2))} className="p-1.5 hover:bg-white/20 rounded transition-colors" title="Zoom In"><ZoomIn className="w-4 h-4" /></button>
+                 <div className="w-px h-4 bg-white/20 mx-1" />
+                 <button onClick={() => { setScale(1); setPosition({x:0,y:0}); }} className="p-1.5 hover:bg-white/20 rounded transition-colors" title="Reset"><RotateCcw className="w-4 h-4" /></button>
+              </div>
+
+              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-red-500/20 text-red-400 hover:text-red-200 rounded-lg transition-colors">
+                 <X className="w-5 h-5" />
+              </button>
+           </div>
+
+           <div 
+             className="flex-1 overflow-hidden relative cursor-move flex items-center justify-center select-none"
+             onMouseDown={handleMouseDown}
+             onMouseMove={handleMouseMove}
+             onMouseUp={handleMouseUp}
+             onMouseLeave={handleMouseUp}
+             onWheel={handleWheel}
+             onClick={(e) => e.stopPropagation()}
+           >
+              <div 
+                style={{ 
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                  transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+                  transformOrigin: 'center center'
+                }}
+                className="bg-white p-10 rounded shadow-2xl min-w-[400px]"
+                dangerouslySetInnerHTML={{ __html: svg }}
+              />
+           </div>
+
+           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 text-white/70 text-xs rounded-full backdrop-blur pointer-events-none border border-white/5">
+              Scroll untuk Zoom • Tahan & Geser untuk Memindahkan
+           </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+const MediaViewer = ({ src, alt, type }: { src: string, alt?: string, type: 'image' | 'video' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = alt || `download-${Date.now()}.${type === 'video' ? 'mp4' : 'png'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+      window.open(src, '_blank');
+    }
+  };
+
+  return (
+    <>
+      <div 
+        className="group relative my-3 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-w-sm cursor-pointer hover:shadow-lg transition-all duration-300"
+        onClick={() => setIsOpen(true)}
+      >
+        {!isLoaded && (
+           <div className="absolute inset-0 bg-slate-200 animate-pulse flex items-center justify-center">
+              {type === 'image' ? <ImageIcon className="w-6 h-6 text-slate-400" /> : <Film className="w-6 h-6 text-slate-400" />}
+           </div>
+        )}
+        
+        {type === 'video' ? (
+          <video src={src} className="w-full h-full max-h-[250px] object-cover" onLoadedData={() => setIsLoaded(true)} muted />
+        ) : (
+          <img src={src} alt={alt} className={`w-full h-auto max-h-[300px] object-cover transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setIsLoaded(true)} />
+        )}
+
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            {type === 'video' && <div className="p-2 bg-black/50 rounded-full"><Play className="w-5 h-5 text-white" /></div>}
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-2">
+               <button onClick={handleDownload} className="p-1.5 bg-black/50 text-white rounded-lg"><Download className="w-4 h-4" /></button>
+            </div>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200" onClick={() => setIsOpen(false)}>
+          <button className="absolute top-4 right-4 p-2 bg-white/10 text-white rounded-full hover:bg-white/20" onClick={() => setIsOpen(false)}><X className="w-6 h-6" /></button>
+          <div className="relative max-w-7xl max-h-[90vh] flex flex-col items-center" onClick={e => e.stopPropagation()}>
+             {type === 'video' ? (
+                <video src={src} controls autoPlay className="max-w-full max-h-[85vh] rounded shadow-2xl" />
+             ) : (
+                <img src={src} alt={alt} className="max-w-full max-h-[85vh] object-contain rounded shadow-2xl" />
+             )}
+             <button onClick={handleDownload} className="mt-4 flex gap-2 px-6 py-2 bg-white/10 text-white rounded-full border border-white/10 hover:bg-white/20">
+                <Download className="w-4 h-4" /> Download {type === 'image' ? 'Gambar' : 'Video'}
+             </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -307,6 +498,25 @@ export default function MessageBubble({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                  img: ({ src, alt }) => {
+                    const safeSrc = typeof src === 'string' ? src : String(src || '');
+                    return <MediaViewer src={safeSrc} alt={alt} type="image" />;
+                  },
+
+                  a: ({ href, children }) => {
+                    const url = href || '';
+                    const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+                    
+                    if (isVideo) {
+                      return <MediaViewer src={url} alt={String(children)} type="video" />;
+                    }
+                    return (
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300 break-all">
+                        {children}
+                      </a>
+                    );
+                  },
+
                   code: ({ node, inline, className, children, ...props }: any) => {
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1] : '';
@@ -316,26 +526,14 @@ export default function MessageBubble({
                       return <Mermaid chart={content} />;
                     }
 
-                    return (
-                      <CodeBlock 
-                        inline={inline} 
-                        className={className} 
-                        {...props}
-                      >
-                        {children}
-                      </CodeBlock>
-                    );
+                    return <CodeBlock inline={inline} className={className} {...props}>{children}</CodeBlock>;
                   },
+
                   ul: ({children}) => <ul className="list-disc pl-4 mb-3 space-y-1">{children}</ul>,
                   ol: ({children}) => <ol className="list-decimal pl-4 mb-3 space-y-1">{children}</ol>,
                   li: ({children}) => <li className="pl-1">{children}</li>,
-                  p: ({children}) => <p className="mb-3 last:mb-0">{children}</p>,
+                  p: ({children}) => <p className="mb-3 last:mb-0 whitespace-pre-line">{children}</p>,
                   strong: ({children}) => <span className="font-bold opacity-90">{children}</span>,
-                  a: ({href, children}) => (
-                    <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline hover:text-blue-300">
-                      {children}
-                    </a>
-                  ),
                   h1: ({children}) => <h1 className="text-lg font-bold mb-2 mt-4 pb-2 border-b border-white/20">{children}</h1>,
                   h2: ({children}) => <h2 className="text-base font-bold mb-2 mt-4">{children}</h2>,
                   blockquote: ({children}) => (

@@ -27,6 +27,10 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const STORAGE_KEY = `aet_ai_chat_history_${mode}`;
+  const toolsRef = useRef<HTMLDivElement>(null);
+  const toolsBtnRef = useRef<HTMLButtonElement>(null);
+  const modelsRef = useRef<HTMLDivElement>(null);
+  const modelsBtnRef = useRef<HTMLButtonElement>(null);
 
   const AVAILABLE_TOOLS = [
     { 
@@ -225,6 +229,30 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
 
   const activeModel = models.find(m => m.id === selectedModel);
   const ActiveIcon = activeModel?.icon || Zap;
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+
+      if (isSettingsOpen && 
+          toolsRef.current && !toolsRef.current.contains(target) && 
+          !toolsBtnRef.current?.contains(target)) {
+        setIsSettingsOpen(false);
+      }
+
+      if (isModelOpen && 
+          modelsRef.current && !modelsRef.current.contains(target) && 
+          !modelsBtnRef.current?.contains(target)) {
+        setIsModelOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSettingsOpen, isModelOpen]); 
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -665,6 +693,7 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
               </button>
               <div className="relative">
                 <button
+                  ref={toolsBtnRef}
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                   className={`p-2 rounded-xl transition-colors transition-transform active:scale-95
                     ${isSettingsOpen 
@@ -681,20 +710,15 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
                 </button>
 
                 {isSettingsOpen && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-[9998]" 
-                      onClick={() => setIsSettingsOpen(false)} 
-                    />
-                    
-                    <div className="absolute bottom-full left-0 mb-3 w-64 p-2 bg-white rounded-2xl shadow-2xl shadow-slate-300/50 border border-slate-100 z-[9999] animate-in fade-in zoom-in-95 duration-200 origin-bottom-left">
+                  <> 
+                    <div ref={toolsRef} className="absolute bottom-full left-0 mb-3 w-64 p-2 bg-white rounded-2xl shadow-2xl shadow-slate-300/50 border border-slate-100 z-[9999] animate-in fade-in zoom-in-95 duration-200 origin-bottom-left">
                       <div className="px-3 py-2 border-b border-slate-50 mb-1">
                         <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Aktifkan Tools AI
                         </h3>
                       </div>
 
-                      <div className="space-y-1">
+                      <div className="space-y-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
                         {AVAILABLE_TOOLS.map((tool) => {
                           const Icon = tool.icon;
                           const isActive = activeTools.includes(tool.id);
@@ -761,6 +785,7 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
             <div className="pr-3 pb-3 flex items-center gap-2">
               <div className="relative">
                 <button
+                  ref={modelsBtnRef}
                   onClick={() => setIsModelOpen(!isModelOpen)}
                   disabled={isLoading}
                   className={`
@@ -780,13 +805,8 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
                 </button>
 
                 {isModelOpen && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-[9998]" 
-                      onClick={() => setIsModelOpen(false)} 
-                    />
-                    
-                    <div className="absolute bottom-full right-0 mb-3 w-64 p-1.5 bg-white rounded-2xl shadow-2xl shadow-slate-300/50 border border-slate-100 z-[9999] animate-in fade-in zoom-in-95 duration-200 origin-bottom-right">
+                  <>                 
+                    <div ref={modelsRef} className="absolute bottom-full right-0 mb-3 w-64 p-1.5 bg-white rounded-2xl shadow-2xl shadow-slate-300/50 border border-slate-100 z-[9999] animate-in fade-in zoom-in-95 duration-200 origin-bottom-right">
                       <div className="px-3 py-2 mb-1 border-b border-slate-50 flex items-center justify-between">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Pilih Kecerdasan AI
