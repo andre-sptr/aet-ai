@@ -1,7 +1,7 @@
 'use client';
 
 import { ChatModeConfig } from '@/types';
-import { Code2, FileText, MessageCircle, Sparkles, Zap, Shield, ArrowRight, ExternalLink, Instagram, Mail, MapPin } from 'lucide-react';
+import { Code2, FileText, MessageCircle, Sparkles, Zap, Shield, ArrowRight, ExternalLink, Instagram, Mail, MapPin, Facebook, Globe, Youtube } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -148,40 +148,102 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto mt-32">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">Hubungi Kami</h2>
-          <p className="text-slate-600">Punya pertanyaan seputar Himpunan atau Prodi AET? Kami siap membantu.</p>
+      <div className="relative z-10 max-w-7xl mx-auto mt-32 px-6">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-4 border border-blue-100">
+            Hubungi Kami
+          </div>
+          <h2 className="text-4xl font-bold text-slate-900 mb-4">Terhubung dengan AET PCR</h2>
+          <p className="text-slate-600 max-w-2xl mx-auto text-lg">
+            Dapatkan informasi terbaru seputar kegiatan himpunan dan program studi melalui saluran resmi kami.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          <a 
-            href="https://instagram.com/aetpcr" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200 hover:border-pink-200 hover:shadow-lg hover:shadow-pink-500/5 transition-all duration-300"
-          >
-            <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Instagram className="w-6 h-6 text-pink-600" />
-            </div>
-            <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
-              Instagram <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100" />
-            </h4>
-            <p className="text-sm text-slate-500 italic">@aetpcr</p>
-          </a>
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <a 
+              href="https://tet.pcr.ac.id/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group p-6 bg-white rounded-3xl border border-slate-200 hover:border-blue-500 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Globe className="w-6 h-6 text-blue-600" />
+              </div>
+              <h4 className="font-bold text-slate-900 mb-1">Website Resmi</h4>
+              <p className="text-sm text-slate-500">tet.pcr.ac.id</p>
+            </a>
 
-          <a 
-            href="mailto:aet@pcr.ac.id" 
-            className="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300"
-          >
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Mail className="w-6 h-6 text-[#0056D2]" />
+            <a 
+              href="https://www.youtube.com/@AETPCR"
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group p-6 bg-white rounded-3xl border border-slate-200 hover:border-red-500 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Youtube className="w-6 h-6 text-red-600" />
+              </div>
+              <h4 className="font-bold text-slate-900 mb-1">YouTube Channel</h4>
+              <p className="text-sm text-slate-500">AET PCR</p>
+            </a>
+
+            <a 
+              href="https://www.instagram.com/aetpcr/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group p-6 bg-white rounded-3xl border border-slate-200 hover:border-pink-500 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="w-12 h-12 bg-pink-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Instagram className="w-6 h-6 text-pink-600" />
+              </div>
+              <h4 className="font-bold text-slate-900 mb-1">Instagram</h4>
+              <p className="text-sm text-slate-500">@aetpcr</p>
+            </a>
+
+            <a 
+              href="https://facebook.com/aetpcr/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group p-6 bg-white rounded-3xl border border-slate-200 hover:border-indigo-600 hover:shadow-xl transition-all duration-300"
+            >
+              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Facebook className="w-6 h-6 text-indigo-600" />
+              </div>
+              <h4 className="font-bold text-slate-900 mb-1">Facebook</h4>
+              <p className="text-sm text-slate-500">AET PCR</p>
+            </a>
+          </div>
+
+          <div className="relative group h-full min-h-[400px]">
+            <div className="absolute inset-0 bg-blue-500/5 rounded-[2.5rem] -rotate-1 group-hover:rotate-0 transition-transform duration-500"></div>
+            <div className="relative h-full bg-white p-3 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.6202092674093!2d101.42609689999999!3d0.5709752!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31d5ab67086f2e89%3A0x65a24264fec306bb!2sPoliteknik%20Caltex%20Riau!5e0!3m2!1sid!2sid!4v1766210002355!5m2!1sid!2sid" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0, borderRadius: '1.5rem' }} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                className="grayscale-[20%] hover:grayscale-0 transition-all duration-500"
+              ></iframe>
+              <div className="absolute bottom-6 right-6 left-auto bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-lg animate-fade-in w-fit max-w-[280px]">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-red-500" />
+                  </div>
+                  <div className="pr-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+                      Lokasi Kami
+                    </p>
+                    <p className="text-sm font-bold text-slate-900 leading-tight">
+                      Politeknik Caltex Riau, Pekanbaru
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
-              Email Resmi <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100" />
-            </h4>
-            <p className="text-sm text-slate-500 italic">aet@pcr.ac.id</p>
-          </a>
+          </div>
         </div>
       </div>
 
