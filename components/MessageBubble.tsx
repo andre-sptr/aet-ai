@@ -244,9 +244,18 @@ const Mermaid = ({ chart }: { chart: string }) => {
               />
            </div>
 
-           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/50 text-white/70 text-xs rounded-full backdrop-blur pointer-events-none border border-white/5">
-              Scroll untuk Zoom • Tahan & Geser untuk Memindahkan
-           </div>
+           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 pointer-events-none">
+             <div className="px-4 py-2 bg-black/50 text-white/70 text-xs rounded-full backdrop-blur border border-white/5">
+                Scroll Zoom • Tahan Geser
+             </div>
+             <a 
+                download={`aet_ai-${Date.now()}.png`}
+                className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-bold rounded-full backdrop-blur shadow-lg pointer-events-auto flex items-center gap-2 transition-colors border border-white/10"
+                onClick={(e) => e.stopPropagation()}
+             >
+                <Save className="w-3.5 h-3.5" /> Download
+             </a>
+          </div>
         </div>
       )}
     </>
@@ -407,7 +416,7 @@ const ImageViewer = ({ src, alt }: { src: string; alt?: string }) => {
                 className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-bold rounded-full backdrop-blur shadow-lg pointer-events-auto flex items-center gap-2 transition-colors border border-white/10"
                 onClick={(e) => e.stopPropagation()}
              >
-                <Save className="w-3.5 h-3.5" /> Download HD
+                <Save className="w-3.5 h-3.5" /> Download
              </a>
           </div>
         </div>,

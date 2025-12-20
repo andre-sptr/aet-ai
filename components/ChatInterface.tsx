@@ -90,13 +90,6 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       color: 'text-slate-600 bg-slate-100'
     },
     { 
-      id: 'diagram', 
-      name: 'Diagram', 
-      desc: 'Buat skema', 
-      icon: Network, 
-      color: 'text-teal-500 bg-teal-50'
-    },
-    { 
       id: 'flowchart', 
       name: 'Flowchart', 
       desc: 'Alur proses', 
