@@ -405,32 +405,36 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setIsLoading(true);
     try {
-      let content = '';
       let mimeType = file.type;
+      let fileToUpload: Blob | File = file;
 
       if (file.type.startsWith('image/')) {
-        content = await compressImage(file);
+        const compressedDataUrl = await compressImage(file);
+        mimeType = 'image/jpeg';
         
-        mimeType = 'image/jpeg'; 
-        
-      } else {
+        const res = await fetch(compressedDataUrl);
+        fileToUpload = await res.blob();
+      } 
+      else {
         if (file.size > 5 * 1024 * 1024) {
           alert('Ukuran file dokumen terlalu besar (Max 5MB)');
-          e.target.value = ''; 
           return;
         }
-        
-        content = await new Promise<string>((resolve, reject) => {
-           const reader = new FileReader();
-           reader.onload = (evt) => resolve(evt.target?.result as string);
-           reader.onerror = reject;
-           reader.readAsDataURL(file);
-        });
       }
 
+      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+        method: 'POST',
+        body: fileToUpload,
+      });
+
+      if (!response.ok) throw new Error('Upload gagal ke server');
+
+      const newBlob = await response.json();
+
       setAttachment({
-        content: content,
+        content: newBlob.url,
         mimeType: mimeType,
         type: mimeType.startsWith('image/') ? 'image' : 'file',
         fileName: file.name
@@ -438,8 +442,9 @@ export default function ChatInterface({ mode, modeTitle, onBack }: ChatInterface
       
     } catch (error) {
       console.error('Error processing file:', error);
-      alert('Gagal memproses file. Silakan coba lagi.');
+      alert('Gagal mengunggah file. Silakan coba lagi.');
     } finally {
+      setIsLoading(false);
       e.target.value = '';
     }
   };

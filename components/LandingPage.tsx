@@ -1,7 +1,7 @@
 'use client';
 
 import { ChatModeConfig } from '@/types';
-import { Code2, FileText, MessageCircle, Sparkles, Zap, Shield, ArrowRight } from 'lucide-react';
+import { Code2, FileText, MessageCircle, Sparkles, Zap, Shield, ArrowRight, ExternalLink, Instagram, Mail, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -145,6 +145,71 @@ export default function LandingPage({ onSelectMode }: LandingPageProps) {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-5xl mx-auto mt-32">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">Hubungi Kami</h2>
+          <p className="text-slate-600">Punya pertanyaan seputar Himpunan atau Prodi AET? Kami siap membantu.</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <a 
+            href="https://instagram.com/aetpcr" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200 hover:border-pink-200 hover:shadow-lg hover:shadow-pink-500/5 transition-all duration-300"
+          >
+            <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Instagram className="w-6 h-6 text-pink-600" />
+            </div>
+            <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              Instagram <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100" />
+            </h4>
+            <p className="text-sm text-slate-500 italic">@aetpcr</p>
+          </a>
+
+          <a 
+            href="mailto:aet@pcr.ac.id" 
+            className="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300"
+          >
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Mail className="w-6 h-6 text-[#0056D2]" />
+            </div>
+            <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              Email Resmi <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100" />
+            </h4>
+            <p className="text-sm text-slate-500 italic">aet@pcr.ac.id</p>
+          </a>
+
+          <a 
+            href="https://www.google.com/maps/place/Politeknik+Caltex+Riau/@0.5709752,101.4260969,17z/data=!3m1!4b1!4m6!3m5!1s0x31d9abd0086f2e89:0x65a24264fe6306bb!8m2!3d0.5709752!4d101.4260969!16s%2Fm%2F04n3p17?entry=ttu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200 hover:border-red-200 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-300"
+          >
+            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <MapPin className="w-6 h-6 text-[#D32F2F]" />
+            </div>
+            <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              Sekretariat <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100" />
+            </h4>
+            <p className="text-sm text-slate-500 italic mb-3">Lt. 2 Gdg. Utama, PCR</p>
+            
+            {/* Preview Peta Sederhana */}
+            <div className="mt-4 rounded-xl overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500 border border-slate-100">
+              <img 
+                src={`https://maps.googleapis.com/maps/api/staticmap?center=0.5709752,101.4260969&zoom=15&size=400x200&markers=color:red%7C0.5709752,101.4260969&key=YOUR_API_KEY`} 
+                alt="Map Politeknik Caltex Riau"
+                className="w-full h-24 object-cover"
+                onError={(e) => {
+                  // Fallback jika tidak menggunakan API Key (Placeholder Image)
+                  (e.target as HTMLImageElement).src = "https://placehold.co/400x200/e2e8f0/64748b?text=Lihat+di+Google+Maps";
+                }}
+              />
+            </div>
+          </a>
         </div>
       </div>
 

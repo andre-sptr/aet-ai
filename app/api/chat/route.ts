@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { ChatMode } from '@/types';
+import { put } from '@vercel/blob';
 import mammoth from 'mammoth';
 import fs from 'fs';
 import path from 'path';
@@ -382,8 +383,13 @@ export async function POST(req: NextRequest) {
       const mimeType = data.predictions?.[0]?.mimeType || 'image/png';
 
       if (imageBase64) {
+        const buffer = Buffer.from(imageBase64, 'base64');
+        const blob = await put(`aet_ai-${Date.now()}.png`, buffer, {
+          access: 'public',
+          contentType: mimeType,
+        });
         return NextResponse.json({ 
-          response: `![Generated Image](data:${mimeType};base64,${imageBase64})` 
+          response: `![Generated Image](${blob.url})` 
         });
       }
     }

@@ -161,7 +161,7 @@ const Mermaid = ({ chart }: { chart: string }) => {
     
     const link = document.createElement('a');
     link.href = url;
-    link.download = `flowchart-${Date.now()}.svg`;
+    link.download = `aet_ai-${Date.now()}.svg`;
     
     document.body.appendChild(link);
     link.click();
@@ -455,7 +455,7 @@ const VideoViewer = ({ src }: { src: string }) => {
       <div className="absolute top-2 right-2 opacity-0 group-hover/video:opacity-100 transition-opacity">
          <a 
             href={src}
-            download={`generated-video-${Date.now()}.mp4`}
+            download={`aet_ai-${Date.now()}.mp4`}
             className="flex items-center gap-2 px-3 py-1.5 bg-black/50 hover:bg-black/70 text-white text-xs rounded-full backdrop-blur-md transition-colors border border-white/10"
          >
             <Save className="w-3.5 h-3.5" /> Simpan
