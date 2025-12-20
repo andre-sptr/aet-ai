@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { ChatMode } from '@/types';
+import mammoth from 'mammoth';
+import fs from 'fs';
+import path from 'path';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -395,6 +398,31 @@ export async function POST(req: NextRequest) {
     let finalSystemInstruction = BASE_SYSTEM_INSTRUCTIONS[mode as ChatMode] || '';
     const lastUserMessage = messages[messages.length - 1].content.toLowerCase();
 
+    if (lastUserMessage.includes('aet')) {
+      try {
+        const docxPath = path.join(process.cwd(), 'public', 'AETPCR.docx');
+        
+        if (fs.existsSync(docxPath)) {
+          const buffer = fs.readFileSync(docxPath);
+
+          const result = await mammoth.extractRawText({ buffer });
+          const extractedText = result.value; 
+
+          finalSystemInstruction += `
+          \n<<<TOOL_DATA_START>>>
+          [DATA REFERENSI RESMI AET PCR]
+          ${extractedText}
+          <<<TOOL_DATA_END>>>
+          \nINSTRUKSI: User sedang bertanya tentang AET. Gunakan DATA REFERENSI di atas sebagai satu-satunya sumber valid untuk menjawab. Jelaskan secara lengkap dan detil. Jika tidak ada di data, katakan tidak tahu.
+          `;
+          
+          console.log("Data AET berhasil dimuat ke prompt.");
+        }
+      } catch (error) {
+        console.error("Gagal membaca file docx:", error);
+      }
+    }
+
     let geminiTools: any[] = [];
 
     if (tools && tools.length > 0) {
@@ -467,7 +495,6 @@ export async function POST(req: NextRequest) {
         if (urlMatch) {
           const webData = await scrapeWeb(urlMatch[0]);
           if (webData) finalSystemInstruction += `\n<<<TOOL_DATA_START>>>\n$${webData}\n<<<TOOL_DATA_END>>>`;
-;
         }
       }
       if (tools.includes('units')) {
