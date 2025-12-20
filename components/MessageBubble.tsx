@@ -151,6 +151,24 @@ const Mermaid = ({ chart }: { chart: string }) => {
     setIsDragging(false);
   };
 
+  const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); 
+
+    if (!svg) return;
+
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `flowchart-${Date.now()}.svg`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (error) {
     return (
       <div className="my-4 flex flex-col gap-2">
@@ -174,11 +192,10 @@ const Mermaid = ({ chart }: { chart: string }) => {
       >
         <div className="bg-slate-50 px-3 py-2 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500">
            <span className="font-medium flex items-center gap-1.5">
-              <Maximize2 className="w-3.5 h-3.5 text-blue-500" /> 
-              Diagram Preview
+              Flowchart
            </span>
            <span className="text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-              Klik untuk Zoom
+              Zoom
            </span>
         </div>
 
@@ -248,13 +265,12 @@ const Mermaid = ({ chart }: { chart: string }) => {
              <div className="px-4 py-2 bg-black/50 text-white/70 text-xs rounded-full backdrop-blur border border-white/5">
                 Scroll Zoom • Tahan Geser
              </div>
-             <a 
-                download={`aet_ai-${Date.now()}.png`}
-                className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-bold rounded-full backdrop-blur shadow-lg pointer-events-auto flex items-center gap-2 transition-colors border border-white/10"
-                onClick={(e) => e.stopPropagation()}
+             <button 
+              onClick={handleDownload}
+              className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white text-xs font-bold rounded-full backdrop-blur shadow-lg pointer-events-auto flex items-center gap-2 transition-colors border border-white/10"
              >
-                <Save className="w-3.5 h-3.5" /> Download
-             </a>
+              <Save className="w-3.5 h-3.5" /> Download
+             </button>
           </div>
         </div>
       )}
